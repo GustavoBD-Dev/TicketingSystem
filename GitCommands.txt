@@ -1,0 +1,61 @@
+Check the status of the project
+$ git status
+
+Add the all the files
+$ git add -A
+
+update what will commited
+$git add <file>
+
+Set commit 
+$ git commit -m "<commit>"
+
+Show the commits 
+$ git log
+
+Move between commits or branchs
+$ git checkout <commit> or <branch>
+
+Show the branch to project 
+$ git branch 
+
+Clone the repository
+$ git clone [url]
+
+Delete the branch
+$ git branch -d 
+
+Discard changes in directory working
+$ git restore <file>
+
+Add the branch to master, first move master
+$ git merch <name_branch>
+
+Delete the branch 
+$ git branch -d <name_branch>
+
+Move and create the branch
+$ git checkout -b Text 
+
+Vincule/Connect the project remote 'GitHub' with local 'PC'
+$ git remote add origin [url] https://github.com/<nameuser>/<nameproject>.git
+
+Delete the vincule to projec local with remote 
+$  git remote remove origin
+
+Show the vincule the remote 
+$ git remote -v
+
+Upload the project to GitHub
+$ git push origin master 
+
+Update the commits in GitHub
+$ git push origin master
+
+Delete commit in repositorie local and remote -> push
+$ git reset HEAD --hard
+$ git push origin -f
+
+
+#############
+#############

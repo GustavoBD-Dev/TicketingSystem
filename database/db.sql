@@ -15,6 +15,14 @@ ALTER TABLE users ADD PRIMARY KEY (id);
 ALTER TABLE users MODIFY id INT(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT = 1;
 --Describe las tablas
 DESCRIBE users;
+--Create the table of rutas
+CREATE TABLE rutas (
+    id INT(11) NOT NULL,
+    origen VARCHAR(60) NOT NULL,
+    destino VARCHAR(60) NOT NULL,
+    horaSalida TEXT(10) NOT NULL,
+    fecha TEXT(10) NOT NULL
+);
 -- links tables
 CREATE TABLE links (
     id INT(11) NOT NULL,
