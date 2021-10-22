@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://bootswatch.com/5/litera/bootstrap.min.css">
+</head>
+
+<body>
+    <nav class="navbar navbar bg-dark">
+        <!-- <a href="/" class="vanbar-brand">CRUD Nodejs MYSQL</a> -->
+        <h2>CRUD Nodejs mysql</h2>
+    </nav>
+
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-5">
+                <div class="card-body">
+                    <form action="/update/<%= data.id %>" method="post">
+                        <div class="form-group">
+                            <input type="text" name="fullname" value="<%= data.fullname %>" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="username" value="<%= data.username %>" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="password" value="<%= data.password %>" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="email" value="<%= data.email %>" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary"> Update User</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>
