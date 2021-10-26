@@ -34,7 +34,14 @@
 							<li class="propClone"><a href="/origenes">Rutas</a></li>
 							<li class="propClone"><a href="/camiones">Camiones</a></li>
 							<li class="propClone"><a href="/Pago">Pago</a></li>
-							<li class="propClone"><a href="/registro">Registro</a></li>
+							<!-- <li class="propClone"><a href="/registro">Registro</a></li> -->
+							<% if (login) { %>
+								<li class="propClone"><a href=""><%= name %></a></li>
+								<li class="btn btn-primary"><a href="/logout">Cerrar Sesion</a></li>
+							<% } else { %>
+								<li class="propClone"><a href=""><%= name %></a></li>
+								<li class="btn btn-primary"><a href="/registro">Iniciar Sesion</a></li>
+							<% } %>
 						</ul>
 					</div>
 				</div>
@@ -345,6 +352,21 @@
 			);
 		});
 	</script>
+
+	<script src="//cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+	<% if (typeof alert != "undefined") {%>
+		<script>
+			Swal.fire({
+				title: "<%= alertTitle %>",
+				text: "<%= alertMessage %>",
+				icon: "<%= alertIcon %>",
+				showConfirmButton: "<%= showConfirmButton %>",
+				timer: "<%= timer %>"
+			}).then(() => {
+				window.location = '/<%= ruta %>'
+			})
+		</script>
+	<% } %>
 
 </body>
 

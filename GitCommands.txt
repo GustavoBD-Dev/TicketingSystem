@@ -53,7 +53,7 @@ Update the commits in GitHub
 $ git push origin master
 
 Delete commit in repositorie local and remote -> push
-$ git reset HEAD --hard
+$ git reset HEAD~1 --hard
 $ git push origin -f
 
 

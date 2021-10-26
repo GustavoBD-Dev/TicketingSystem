@@ -4,6 +4,7 @@ const path = require('path');
 const morgan = require('morgan');
 const mysql = require('mysql');
 const myConnection = require('express-myconnection');
+const session = require('express-session');
 
 // importando rutas 
 //const userRouters = require('./routes/user');
@@ -31,6 +32,12 @@ app.use(myConnection(mysql, { // conexion a la base de datos
 // metodo que permite entender los datos del formulario
 app.use(express.urlencoded({extended: false})); // false - no envia iamgenes 
 
+// variables de sesion
+app.use(session({
+    secret: 'secret',
+    resave: true,
+    saveUninitialized: true
+}));
 
 
 // Routers - urls que los usuarios piden al servidor

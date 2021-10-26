@@ -75,13 +75,13 @@
 						</div>
 					</div>
 					<!-- <form method="post" action="contact.php" id="contactform"> -->
-                    <form action="/add" method="post" id="contactform">
+                    <form action="/auth" method="post" id="contactform">
                         <div class="form">
                             <!-- <input type="text" name="name" placeholder="Tu alias *"> -->
-                            <input type="text" name="fullname" placeholder="Tu nombre completo *">
-                            <input type="text" name="username" placeholder="Tu nombre de usuario *">
-                            <input type="text" name="password" placeholder="Tu contraseña *">
-                            <input type="text" name="email" placeholder="Tu correo electronico*">
+						    <input type="text" name="fullname" placeholder="Tu nombre completo" >
+                            <input type="text" name="username" placeholder="Tu nombre de usuario" >
+                            <input type="text" name="password" placeholder="Tu contraseña" >
+                            <input type="text" name="diremail" placeholder="Tu correo electronico" >
                             <!-- <textarea name="comment" rows="7" placeholder="Type your Message *"></textarea> -->
                             <!-- <button>Registrar</button>
 							<input type="submit" id="userData" class="clearfix btn" value="Registrar"> -->
@@ -111,7 +111,7 @@
 	</section>
 
 	<!-- FOOTER =============================-->
-	<div class="footer text-center">
+	@<div class="footer text-center">
 		<div class="container">
 			<div class="row">
 				<p class="footernote">
@@ -137,6 +137,21 @@
 	<script src="/js/bootstrap.min.js"></script>
 	<script src="/js/anim.js"></script>
 
+	<script src="//cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+	<% if (typeof alert != "undefined") {%>
+		<script>
+			Swal.fire({
+				title: "<%= alertTitle %>",
+				text: "<%= alertMessage %>",
+				icon: "<%= alertIcon %>",
+				showConfirmButton: "<%= showConfirmButton %>",
+				timer: "<%= timer %>"
+			}).then(() => {
+				window.location = '/<%= ruta %>'
+			})
+		</script>
+	<% } %>
+</body>
 </html>
 
 
