@@ -19,6 +19,7 @@ router.post('/auth', mainController.auth);
 
 // Sentntences to rutas 
 router.get('/rutes/:origen', mainController.destinos);
+router.get('/account', mainController.account);
 //router.get('/rutes/:destino', mainController.destinos);
 
 // redireccion a render del menu de navegacion

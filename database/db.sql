@@ -47,3 +47,37 @@ ALTER TABLE rutas MODIFY id INT(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT = 1;
 -- insert data in table rutas
 INSERT INTO rutas (origen, destino, horaSalida, fecha)
 VALUES ('Atlacomulco', 'San Diego', '15:30:00', '02/02/2022');
+
+
+-- create table tickets
+CREATE TABLE purchasedTickets 
+(
+    folio       INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    idUser      INT NOT NULL,
+    idTicket    INT NOT NULL,
+    numTickets  INT NOT NULL,
+    fullPayment INT NOT NULL,
+    datePurchase DATE NOT NULL,
+    timePurchase TIME NOT NULL,
+    fileTicket  VARCHAR(20) NOT NULL,
+    PRIMARY KEY (folio)
+);
+
+-- insert row into table tickets
+INSERT INTO purchasedTickets (
+    idUser, 
+    idTicket, 
+    numTickets, 
+    fullPayment, 
+    datePurchase, 
+    timePurchase, 
+    fileTicket
+) VALUES (
+    1,
+    24,
+    1,
+    150,
+    '2015-09-03',
+    '12:00:00',
+    'userOne.txt'
+);

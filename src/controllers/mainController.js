@@ -32,6 +32,24 @@ controller.list = (req, res) => {
     });*/
 };
 
+controller.account = (req, res) => {
+    // get connection with database
+    req.getConnection((err, conn) => {
+        conn.query('SELECT * FROM purchasedTickets;', (err, tickets) => {
+            if (err) {
+                res.json(err);
+            } 
+            // show tickets
+            console.log("MOSTRANDO TICKES DE USUARIO...");
+            console.log(tickets);
+            res.render('account', {
+                data:   tickets,
+                name: req.session.name
+            });
+        });
+    });
+}
+
 controller.logout = (req, res) => {
     req.session.destroy(() => { // despues de cerrar sesion redirige a inicio
         //res.redirect('/');
@@ -40,14 +58,16 @@ controller.logout = (req, res) => {
             name: 'USUARIO',
             alert: true,
             alertTitle: "Advertencia",
-            alertMessage: "SE HA CEERADO SESION",
+            alertMessage: "SE HA CERRADO SESION",
             alertIcon: "error",
             showConfirmButton: false,// boton de confirmacion 
             timer: 1500,
             ruta: ''
         }); 
-    })
+    });
 }
+
+
 
 
 

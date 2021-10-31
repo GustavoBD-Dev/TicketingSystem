@@ -26,7 +26,7 @@
 							<i class="fa fa-bars"></i>
 							<span class="sr-only">Toggle navigation</span>
 						</button>
-						<a href="index.html" class="navbar-brand brand"> TRANSPORTES BAB </a>
+						<a href="/" class="navbar-brand brand"> TRANSPORTES BAB </a>
 					</div>
 					<div id="navbar-collapse-02" class="collapse navbar-collapse">
 						<ul class="nav navbar-nav navbar-right">
@@ -36,10 +36,10 @@
 							<li class="propClone"><a href="/Pago">Pago</a></li>
 							<!-- <li class="propClone"><a href="/registro">Registro</a></li> -->
 							<% if (login) { %>
-								<li class="propClone"><a href=""><%= name %></a></li>
+								<li class="propClone"><a href="/account"><%= name %></a></li>
 								<li class="btn btn-primary"><a href="/logout">Cerrar Sesion</a></li>
 							<% } else { %>
-								<li class="propClone"><a href=""><%= name %></a></li>
+								<li class="propClone"><a href="/registro"><%= name %></a></li>
 								<li class="btn btn-primary"><a href="/registro">Iniciar Sesion</a></li>
 							<% } %>
 						</ul>
