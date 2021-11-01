@@ -73,7 +73,7 @@ controller.logout = (req, res) => {
 
 controller.origenes = (req, res) => {// render a rutas.ejs
     req.getConnection((err, conn) => {// get the connection
-        conn.query('SELECT origen FROM rutas', (err, rutas) => {
+        conn.query('SELECT DISTINCT startingPlace FROM travelRoutes', (err, rutas) => {
             if (err) {
                 res.json(err);
             }
@@ -105,7 +105,8 @@ controller.registro = (req, res) => {// render a registro.ejs
 controller.destinos = (req, res) => { // get the routes availables
     const { origen } = req.params;
     req.getConnection((err, conn) => {
-        conn.query('SELECT destino FROM rutas WHERE origen = ?', [origen], (err, rutas) => {
+        conn.query('SELECT destinyPlace FROM travelRoutes WHERE startingPlace = ?',
+        [origen], (err, rutas) => {
             if (err) {
                 res.json(err);
             }
@@ -144,7 +145,7 @@ controller.save = (req, res) => {
 controller.edit = (req, res) => {
     const { id } = req.params;
     req.getConnection((err, conn) => {
-        conn.query('SELECT * FROM users WHERE id = ?', [id], (err, rows) => {
+        conn.query('SELECT * FROM users WHERE idUser = ?', [id], (err, rows) => {
             //console.log(rows);
             res.render('users_edit', { // archivo ejs a generar 
                 data: rows[0] // recibe un arreglo 
@@ -187,11 +188,12 @@ controller.userRegister = async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
     const email = req.body.diremail;
+    const credit = '0.0';
     console.log(req.body);
     //let passwordHaash = await bcryptjs.hash(pass, 8);
     req.getConnection((err, conn) => {
         conn.query('INSERT INTO users SET ?',
-            { username, password, fullname, email },
+            { username, password, fullname, email, credit},
             async (error, results) => {
                 if (error) {
                     console.log(error);
@@ -211,9 +213,9 @@ controller.auth = async (req, res) => {
         //console.log('Buscando usuario');
         req.getConnection((err, conn) => {
             //console.log('Buscando usuario ', username);
-            conn.query('SELECT * FROM users WHERE username = ?', [username], async (error, results) => {
-                console.log("RESULTADOS OBTENIDOS: ",results[0].password);
-                if ((await bcrypt.compare(password, results[0].password))) {
+            conn.query('SELECT * FROM users WHERE userName = ?', [username], async (error, results) => {
+                console.log("RESULTADOS OBTENIDOS: ",results[0].passwordUs);
+                if ((await bcrypt.compare(password, results[0].passwordUs))) {
                     res.render('registro', {
                         alert: true,
                         alertTitle: "Error",
