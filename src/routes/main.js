@@ -16,16 +16,17 @@ router.get('/update/:id', mainController.edit);
 router.post('/update/:id', mainController.update);
 router.post('/userRegister', mainController.userRegister);
 router.post('/auth', mainController.auth);
+router.post('/purchase/:origenSelect-:destinyPlace', mainController.purchase); // compra de boleto
 
 // Sentntences to rutas 
-router.get('/rutes/:origen', mainController.destinos);
+router.get('/destinos-to/:origen', mainController.destinos);
 router.get('/account', mainController.account);
 //router.get('/rutes/:destino', mainController.destinos);
 
 // redireccion a render del menu de navegacion
 router.get('/origenes', mainController.origenes);
 router.get('/camiones', mainController.camiones);
-router.get('/pago', mainController.pago);
+router.get('/pago/:origenSelect-:destinyPlace', mainController.pago);
 router.get('/registro', mainController.registro);
 
 module.exports = router;

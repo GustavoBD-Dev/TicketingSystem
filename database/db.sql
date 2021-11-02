@@ -157,3 +157,22 @@ INSERT INTO travelRoutes (
     '210.0',
     '40'
 );
+
+
+INSERT INTO purchasedTickets (
+    idUser,
+    idTravelRoute,
+    numberTickets,
+    fullPayment,
+    datePurchase,
+    timePurchase,
+    fileTicket
+) VALUES (
+    1,
+    1,
+    1,
+    210,
+    '2021-11-01',
+    '23:00:00',
+    '1.txt'
+);

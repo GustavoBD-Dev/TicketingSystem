@@ -124,3 +124,92 @@
         </tbody>
     </div>
 </table>
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://bootswatch.com/5/litera/bootstrap.min.css">
+</head>
+
+<body>
+    <nav class="navbar navbar bg-dark">
+        <!-- <a href="/" class="vanbar-brand">CRUD Nodejs MYSQL</a> -->
+        <h2><%= name %></h2>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-7">
+                <table class="table table.bordersed table.hover">
+                    <thead>
+                        <tr>
+                            <th>N°</th>
+                            <th>Folio</th>
+                            <th>ID TICKET</th>
+                            <th>NUM TICKETS</th>
+                            <th>TOTAL $</th>
+                            <th>FECHA</th>
+                            <th>HORA</th>
+                            <th>DESCARGAR BOLETO</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (data) { %>
+                        <%  for (var i = 0; i < data.length; i++) {%>
+                            <tr>
+                                <td><%= (i + 1) %></td>
+                                <td><%= data[i].folio %></td>
+                                <td><%= data[i].idTicket %></td>
+                                <td><%= data[i].numTickets %></td>
+                                <td><%= data[i].fullPayment %></td>
+                                <td><%= data[i].datePurchase %></td>
+                                <td><%= data[i].timePurchase %></td>
+                                <td><%= data[i].fileTicket %></td>
+                                <td>
+                                    <!-- eliminamos los archivos pasando l id de la base  -->
+                                    <a href="/delete/<%= data[i].id %>" class="btn btn-danger">Delete</a>
+                                    <a href="/update/<%= data[i].id %>" class="btn btn-info">Update</a>
+                                </td>
+                            </tr>
+                        <% } %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-body">
+                        <form action="/add" method="post">
+                            <div class="form-group">
+                                <input type="text" name="fullname" placeholder="Name" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="username" placeholder="UserName" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="password" placeholder="Password" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="email" placeholder="Email" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary"> Save User</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

@@ -5,9 +5,9 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta name="generator" content="">
-	<link href="css/bootstrap.min.css" rel="stylesheet">
+	<link href="/css/bootstrap.min.css" rel="stylesheet">
 	<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
-	<link href="css/style.css" rel="stylesheet">
+	<link href="/css/style.css" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css?family=Dosis:200,300,400,500,600,700" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css?family=Roboto:200,300,400,500,600,700" rel="stylesheet">
 </head>
@@ -32,8 +32,18 @@
 							<li class="propClone"><a href="/">Inicio</a></li>
 							<li class="propClone"><a href="/origenes">Rutas</a></li>
 							<li class="propClone"><a href="/camiones">Camiones</a></li>
-							<li class="propClone"><a href="/Pago">Pago</a></li>
-							<li class="propClone"><a href="/registro">Registro</a></li>
+							<li class="propClone"><a href="/pago">Pago</a></li>
+							<% if (login) { %>
+								<li class="propClone"><a href="/account">
+										<%= name %>
+									</a></li>
+								<li class="btn btn-primary"><a href="/logout">Cerrar Sesion</a></li>
+								<% } else { %>
+									<li class="propClone"><a href="/registro">
+											<%= name %>
+										</a></li>
+									<li class="btn btn-primary"><a href="/registro">Iniciar Sesion</a></li>
+									<% } %>
 						</ul>
 					</div>
 				</div>
@@ -67,64 +77,79 @@
 					</span>
 				</div>
 			</div>
-			<div id="edd_checkout_wrap" class="col-md-8 col-md-offset-2">
-				<form id="edd_checkout_cart_form" method="post">
+			<div id="edd_checkout_wrap" class="col-md-8 col-md-offset-1">
+				<form id="edd_checkout_cart_form" method="post" action="/purchase/<%= data[0].startingPlace %>-<%= data[0].destinyPlace %>">
 					<div id="edd_checkout_cart_wrap">
 						<table id="edd_checkout_cart" class="ajaxed">
 							<thead>
 								<tr class="edd_cart_header_row">
 									<th class="edd_cart_item_name">
-										Item Name
+										VIAJE
+									</th>
+									<th class="edd_cart_item_name">
+										FECHA/HORA
 									</th>
 									<th class="edd_cart_item_price">
-										Item Price
+										PRECIO
 									</th>
+									<!-- <th class="edd_cart_item_price">
+										CANTIDAD
+									</th>
+									<th>
+										TOTAL
+									</th> -->
 									<th class="edd_cart_actions">
-										Actions
+										ACCIONES
 									</th>
 								</tr>
 							</thead>
+
 							<tbody>
 								<tr class="edd_cart_item" id="edd_cart_item_0_25" data-download-id="25">
 									<td class="edd_cart_item_name">
-										<div class="edd_cart_item_image">
-											<img width="25" height="25" src="images/scorilo2-70x70.jpg" alt="">
-										</div>
-										<span class="edd_checkout_cart_item_title">Audio Item - Single License</span>
+										<span class="edd_cart_item_image">
+											<%= data[0].startingPlace %> - <%= data[0].destinyPlace %>
+										</span>
 									</td>
-									<td class="edd_cart_item_price">
-										$11.99
+									<td>
+										<%= data[0].dateTravel %> / <%= data[0].hourTravel %>
 									</td>
+									<td class="edd_cart_item_price" id="price_Travel">
+										<%= data[0].priceTravel %>
+									</td>
+									<!-- <td class="edd_cart_actions">
+										<input class="edd_price" type="number" id="cantidad" min="1" max="45" value="1"
+											required>
+									</td>
+									<td>
+										$ <span class="edd_cart_amount" data-subtotal="11.99" data-total="11.99" id="TOTAL_PAY">
+											<%= data[0].priceTravel %> </span>
+									</td> -->
 									<td class="edd_cart_actions">
-										<a class="edd_cart_remove_item_btn" href="#">Remove</a>
+										<!-- <a class="edd_cart_remove_item_btn" href="#">Eliminar</a> -->
+										<input type="submit" class="edd-submit button" id="edd-purchase-button" name="edd-purchase" value="Comprar">
 									</td>
 								</tr>
 							</tbody>
-							<tfoot>
+							<!-- <tfoot>
 								<tr class="edd_cart_footer_row">
-									<th colspan="5">
-										<a class="edd-cart-saving-button edd-submit button " id="edd-save-cart-button"
-											href="#">Save Cart</a>
+									<th colspan="5" class="edd_cart_total"> Total: $
+										<span class="edd_cart_amount" data-subtotal="11.99" data-total="11.99"
+											id="TOTAL_PAY">
+											<%= data[0].priceTravel %>
+										</span>
+										<br>
+										<input type="submit" class="edd-submit button" id="edd-purchase-button" name="edd-purchase" value="Purchase">
 									</th>
 								</tr>
-								<tr class="edd_cart_footer_row edd_cart_discount_row" style="display:none;">
-									<th colspan="5" class="edd_cart_discount">
-									</th>
-								</tr>
-								<tr class="edd_cart_footer_row">
-									<th colspan="5" class="edd_cart_total">
-										Total: <span class="edd_cart_amount" data-subtotal="11.99"
-											data-total="11.99">$11.99</span>
-									</th>
-								</tr>
-							</tfoot>
-						</table>
+							</tfoot> -->
+						</table>  
 					</div>
 				</form>
-				<div id="edd_checkout_form_wrap" class="edd_clearfix">
-					<form id="edd_purchase_form" class="edd_form" action="#" method="POST">
+				<!-- <div id="edd_checkout_form_wrap" class="edd_clearfix">
+					<form id="edd_purchase_form" class="edd_form" method="POST">
 						<fieldset id="edd_checkout_user_info">
-							<legend>Personal Info</legend>
+							<legend>Informacion Personal</legend>
 							<p id="edd-email-wrap">
 								<label class="edd-label" for="edd-email">
 									Email Address <span class="edd-required-indicator">*</span></label>
@@ -136,7 +161,7 @@
 									First Name <span class="edd-required-indicator">*</span>
 								</label>
 								<input class="edd-input required" type="text" name="edd_first" placeholder="First name"
-									id="edd-first" value="" required="">
+									id="edd-first" value="">
 							</p>
 							<p id="edd-last-name-wrap">
 								<label class="edd-label" for="edd-last">
@@ -147,16 +172,17 @@
 						</fieldset>
 						<fieldset id="edd_purchase_submit">
 							<p id="edd_final_total_wrap">
-								<strong>Purchase Total:</strong>
-								<span class="edd_cart_amount" data-subtotal="11.99" data-total="11.99">$11.99</span>
+								<strong>Purchase Total: $ 
+									<span class="edd_cart_amount" data-subtotal="11.99" data-total="11.99" id="TOTAL_PAY">
+										<%= data[0].priceTravel %> </span>
+								</strong>
 							</p>
 							<input type="hidden" name="edd_action" value="purchase">
 							<input type="hidden" name="edd-gateway" value="manual">
-							<input type="submit" class="edd-submit button" id="edd-purchase-button" name="edd-purchase"
-								value="Purchase">
+							<input type="submit" class="edd-submit button" id="edd-purchase-button" name="edd-purchase" value="Purchase">
 						</fieldset>
 					</form>
-				</div>
+				</div> -->
 			</div>
 		</div>
 	</section>
@@ -199,9 +225,21 @@
 	</div>
 
 	<!-- SCRIPTS =============================-->
-	<script src="js/jquery-.js"></script>
-	<script src="js/bootstrap.min.js"></script>
-	<script src="js/anim.js"></script>
+	<script src="/js/jquery-.js"></script>
+	<script src="/js/bootstrap.min.js"></script>
+	<script src="/js/anim.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script>
+		$("#cantidad").bind("keyup keydown change", function () {
+			var total = $("#cantidad").val(); // total de boletos
+			var x = document.getElementsByTagName("td")
+			var pago1 = x[2].innerHTML;
+			var totalPrice = total * pago1;
+			// asignamos el precio final en la celda 
+			$("#TOTAL_PAY").html(totalPrice);
+			//console.log(total, x, pago1, totalPrice);
+		});
+	</script>
 
 </body>
 

@@ -1,5 +1,6 @@
 const { render } = require("ejs");
 var bcrypt = require('bcryptjs');// inovamos
+const { route } = require("../routes/main");
 
 const controller = {};
 
@@ -43,6 +44,8 @@ controller.account = (req, res) => {
             console.log("MOSTRANDO TICKES DE USUARIO...");
             console.log(tickets);
             res.render('account', {
+                login: true, 
+                name: req.session.name,
                 data:   tickets,
                 name: req.session.name
             });
@@ -67,31 +70,80 @@ controller.logout = (req, res) => {
     });
 }
 
-
-
-
-
 controller.origenes = (req, res) => {// render a rutas.ejs
+    //console.log(req.body);
     req.getConnection((err, conn) => {// get the connection
         conn.query('SELECT DISTINCT startingPlace FROM travelRoutes', (err, rutas) => {
             if (err) {
                 res.json(err);
             }
-            console.log(rutas); // mostramos objetos en consola
-            res.render('origenes', { // primer objeto en renderizar
-                data: rutas
-            });
+            console.log(rutas, ">>"); // rutas contiene lugar de destino
+            if (req.session.loggedIn) { // si ya inicio sesion 
+                res.render('origenes', {
+                    login: true, 
+                    name: req.session.name,
+                    data: rutas,
+                
+                });
+            } else {
+                res.render('origenes', {
+                    login: false, 
+                    name: 'USUARIO',
+                    data:rutas
+                });
+            } // fin de else
         });
     });
 }; // end 
 
 
 controller.camiones = (req, res) => {// render a camiones.ejs
-    res.render('camiones');
+    if (req.session.loggedIn) { // si ya inicio sesion 
+        res.render('camiones', {
+            login: true, 
+            name: req.session.name,
+        });
+    } else {
+        res.render('camiones', {
+            login: false, 
+            name: 'USUARIO',
+        });
+    } // fin de else
+
+
+    //res.render('camiones');
 };
 
 controller.pago = (req, res) => {// render a pago.ejs
-    res.render('pagos');
+    // obtenemos el inicio y destino de los parametros
+    const inicio = req.params.origenSelect;
+    const final = req.params.destinyPlace;
+    console.log('HACER COMPRA CON ESTE DATO', inicio, final);;
+
+    // obtenemos el precio de la ruta
+    req.getConnection((err, conn) => {
+        conn.query('SELECT * FROM travelRoutes WHERE startingPlace = ? AND destinyPlace = ?',
+        [inicio, final], (err, infoTravel) => {
+            if (err) {
+                res.json(err);
+            }
+            console.log(">>>",infoTravel);
+
+            if (req.session.loggedIn) { // si ya inicio sesion 
+                res.render('pagos', {
+                    login: true, 
+                    name: req.session.name,
+                    data: infoTravel
+                });
+            } else {
+                res.render('pagos', {
+                    login: false, 
+                    name: 'USUARIO',
+                    data: infoTravel
+                });
+            } // fin de else
+        })
+    });
 };
 
 controller.registro = (req, res) => {// render a registro.ejs
@@ -110,11 +162,22 @@ controller.destinos = (req, res) => { // get the routes availables
             if (err) {
                 res.json(err);
             }
-            // pintamos una vista
-            console.log(rutas);
-            res.render('destinos', { // primer objeto en renderizar
-                data: rutas
-            });
+            //console.log(rutas); // mostramos objetos en consola
+            if (req.session.loggedIn) { // si ya inicio sesion 
+                res.render('destinos', {
+                    login: true, 
+                    name: req.session.name,
+                    data: rutas,
+                    origenSelect: origen
+                });
+            } else {
+                res.render('destinos', {
+                    login: false, 
+                    name: 'USUARIO',
+                    data:rutas,
+                    origenSelect: origen
+                });
+            } // fin de else
             // redirecciona a la pagina con tabla sindato eliminado 
             //res.redirect('/');// pinta la tabla sin el dato
         });
@@ -184,21 +247,32 @@ controller.delete = (req, res) => {
 };
 
 controller.userRegister = async (req, res) => {
-    const fullname = req.body.fullname;
-    const username = req.body.username;
-    const password = req.body.password;
-    const email = req.body.diremail;
+    const fullNameUS = req.body.fullname;
+    const userName = req.body.username;
+    const passwordUs = req.body.password;
+    const emailUser = req.body.email;
     const credit = '0.0';
     console.log(req.body);
     //let passwordHaash = await bcryptjs.hash(pass, 8);
     req.getConnection((err, conn) => {
         conn.query('INSERT INTO users SET ?',
-            { username, password, fullname, email, credit},
+            { userName, passwordUs, fullNameUS, emailUser, credit},
             async (error, results) => {
                 if (error) {
                     console.log(error);
                 } else {
-                    res.send("ALTA EXITOSA");
+                    //res.send("ALTA EXITOSA");
+                    req.session.loggedIn = true; // inicia sesion 
+                    req.session.name = userName;
+                    res.render('registro', {
+                        alert: true,
+                        alertTitle: "Registro de Cuenta Exitosa",
+                        alertMessage: "BIENVENIDO!!!",
+                        alertIcon: "success",
+                        showConfirmButton: false,// boton de confirmacion 
+                        timer: 2000,
+                        ruta: ''
+                    })
                 }
             });
     });
@@ -227,7 +301,7 @@ controller.auth = async (req, res) => {
                     });
                 } else {
                     req.session.loggedIn = true; // variable de sesion
-                    req.session.name = results[0].username;
+                    req.session.name = results[0].userName;
                     res.render('registro', {
                         alert: true,
                         alertTitle: "Conexion Exitosa",
@@ -254,6 +328,15 @@ controller.auth = async (req, res) => {
     } 
 }; // end controller.auth
 
+
+controller.purchase = (req, res) => {
+    //res.send("COMPRA EXITOSA");
+    //sres.send(req.params);
+    console.log(req.params);
+    //console.log(req.session.name);
+    //console.log(req.session);
+
+}
 
 module.exports = controller;
 
