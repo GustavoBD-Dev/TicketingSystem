@@ -169,10 +169,18 @@ INSERT INTO purchasedTickets (
     fileTicket
 ) VALUES (
     1,
+    2,
     1,
-    1,
-    210,
+    190,
     '2021-11-01',
     '23:00:00',
     '1.txt'
 );
+
+
+SELECT OrderID, C.CustomerID, CompanyName, OrderDate
+FROM Customers C, Orders O
+WHERE C.CustomerID = O.CustomerID
+
+SELECT * FROM purchasedTickets T, travelRoutes R WHERE T.idTravelRoute = R.idTravelRoute;
+SELECT * FROM purchasedTickets T, travelRoutes R, users U WHERE T.idTravelRoute = R.idTravelRoute AND U.userName = 'RECTOR_RETRO';

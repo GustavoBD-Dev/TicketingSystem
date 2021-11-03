@@ -32,7 +32,7 @@
                             <li class="propClone"><a href="/">Inicio</a></li>
                             <li class="propClone"><a href="/origenes">Rutas</a></li>
                             <li class="propClone"><a href="/camiones">Camiones</a></li>
-                            <li class="propClone"><a href="/pago">Pago</a></li>
+                            <!-- <li class="propClone"><a href="/pago">Pago</a></li> -->
                             <% if (login) { %>
                                 <li class="propClone"><a href="/account"> <%= name %></a></li>
                                 <li class="btn btn-primary"><a href="/logout">Cerrar Sesion</a></li>
@@ -49,7 +49,7 @@
                     <div class="col-md-12 text-center">
                         <div class="text-pageheader">
                             <div class="subtext-image" data-scrollreveal="enter bottom over 1.7s after 0.1s">
-                                Rutas
+                                <%= data[0].fullNameUs %> <strong>Credito: $<%= data[0].credit %></strong>
                             </div>
                         </div>
                     </div>
@@ -78,17 +78,19 @@
                     <thead>
                         <tr>
                             <th>N°</th>
-                            <th>Folio</th>
-                            <th>ID TICKET</th>
-                            <th>NUM TICKETS</th>
+                            <th>FOLIO</th>
+                            <th>DETALLE BOLETO</th>
+                            <th>N° TICKETS</th>
                             <th>TOTAL $</th>
-                            <th>FECHA</th>
-                            <th>HORA</th>
-                            <th>DESCARGAR BOLETO</th>
+                            <th>FECHA COMPRA</th>
+                            <th>HORA COMPRA</th>
+                            <th>ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <% if (data) { %>
+                        <!-- SI EXISTE UN FOLIO, ENTONCS YA HA COMPRADO UN BOLETO
+                        ENTONCES SE MUESTRAN LOS BOLETOS -->
+                        <% if (data[0].folio) { %>
                             <% for (var i=0; i < data.length; i++) {%>
                                 <tr>
                                     <td>
@@ -98,36 +100,63 @@
                                         <%= data[i].folio %>
                                     </td>
                                     <td>
-                                        <%= data[i].idTicket %>
+                                        <table id="tabla2">
+                                            <tr>
+                                              <td>ID</td>
+                                              <td>:</td>
+                                              <td><%= data[i].idTravelRoute %></td>
+                                            </tr>
+                                            <tr>
+                                                <td>INICIO</td>
+                                                <td>:</td>
+                                                <td><%= data[i].startingPlace %></td>
+                                            </tr>
+                                            <tr>
+                                                <td>DESTINO</td>
+                                                <td>:</td>
+                                                <td><%= data[i].destinyPlace %></td>
+                                            </tr>
+                                            <tr>
+                                                <td>DIA</td>
+                                                <td>:</td>
+                                                <td><%= data[i].dateTravel%></td>
+                                            </tr>
+                                            <tr>
+                                                <td>HORA</td>
+                                                <td>:</td>
+                                                <td><%= data[i].hourTravel %></td>
+                                            </tr>
+                                            <tr>
+                                                <td>PRECIO</td>
+                                                <td>:</td>
+                                                <td><%= data[i].priceTravel %></td>
+                                            </tr>
+                                        </table>
                                     </td>
                                     <td>
-                                        <%= data[i].numTickets %>
+                                        <%= data[i].numberTickets %>
                                     </td>
                                     <td>
                                         <%= data[i].fullPayment %>
                                     </td>
                                     <td>
-                                        <%= data[i].datePurchase %>
+                                        <%=data[i].datePurchase.getFullYear()%>-<%=data[i].datePurchase.getMonth()%>-<%=data[i].datePurchase.getDate()%>
                                     </td>
                                     <td>
                                         <%= data[i].timePurchase %>
                                     </td>
                                     <td>
-                                        <%= data[i].fileTicket %>
-                                    </td>
-                                    <td>
                                         <!-- eliminamos los archivos pasando l id de la base  -->
-                                        <a href="/delete/<%= data[i].id %>" class="btn btn-danger">Delete</a>
-                                        <a href="/update/<%= data[i].id %>" class="btn btn-info">Update</a>
+                                        <!-- <a href="/delete/<%= data[i].id %>" class="btn btn-danger">Eliminar</a>
+                                        <a href="/update/<%= data[i].id %>" class="btn btn-info">Imprimir</a> -->
+                                        <a href="" class="btn btn-danger">Eliminar</a>
+                                        <a href="" class="btn btn-info">Imprimir</a>
                                     </td>
                                 </tr>
-                                <% } %>
-                                    <% } %>
+                            <% } %>
+                        <% }  %>
                     </tbody>
                 </table>
-
-
-
 
             </div>
             <!-- <div class="row">
