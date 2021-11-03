@@ -150,8 +150,8 @@ INSERT INTO travelRoutes (
     priceTravel,
     availablePlaces
 ) VALUES (
+    'Queretaro',
     'Atlacomulco',
-    'Puebla',
     '2021-11-01',
     '21:00:00',
     '210.0',

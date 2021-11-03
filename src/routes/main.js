@@ -17,7 +17,7 @@ router.post('/update/:id', mainController.update);
 router.post('/userRegister', mainController.userRegister);
 router.post('/auth', mainController.auth);
 router.post('/purchase/:origenSelect-:destinyPlace', mainController.purchase); // compra de boleto
-
+router.get('/get-ticket/:folio', mainController.getTicket); // imprimir boleto
 // Sentntences to rutas 
 router.get('/destinos-to/:origen', mainController.destinos);
 router.get('/account', mainController.account);

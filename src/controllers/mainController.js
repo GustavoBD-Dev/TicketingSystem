@@ -2,6 +2,9 @@ const { render } = require("ejs");
 var bcrypt = require('bcryptjs');// inovamos
 const { route, connect } = require("../routes/main");
 const util = require('util');
+//const PDFDocument = require('pdfkit');
+const PDFDocument = require('pdfkit-construct');
+//const fs = require('fs'); // modulo de nodejs
 
 const controller = {};
 
@@ -253,6 +256,96 @@ controller.update = (req, res) => {
         });
     });
 };
+
+controller.getTicket = async (req, res) => { // generacion de tickets
+    // Obtenemos el folio de compra 
+    const folio = req.params.folio;
+    //Obtenemos los datos del boleto por el folio de compra de params 
+    req.getConnection( async (err, conn) => {
+        const query = util.promisify(conn.query).bind(conn);
+        try {
+            // consulta de datos de boleto a Eliminar
+            const dataTicket = await query(`SELECT * FROM travelRoutes WHERE idTravelRoute = (SELECT idTravelRoute FROM purchasedTickets WHERE folio = ${folio});`);
+            // instancia de PDF
+            //const doc = new PDFDocument({bufferPage: true, size: 'A7'});
+            const doc = new PDFDocument({bufferPage: true});
+            // Passing size to the addPage function
+            //doc.addPage({size: 'A7'});
+            // generamos el nombre del archivo personalizado 
+            const filename = `${req.session.name}_${folio}.pdf`;
+            const stream = res.writeHead(200, {
+                'content-Type': 'application/pdf',
+                'content-disposition' : `attachment;filename=${filename}`
+            });
+            // toda la data que se crea se pasa a traves del enacbezado
+            doc.on('data', (data) => {stream.write(data)});
+            // terminamos el encabezado
+            doc.on('end', () => {stream.end()});
+            // Funcion text recibe como parametro los que queremos mostrar 
+            // parametros adicionales muestra la coordenada donde se muestra el msm
+            doc.text('Hola Mundo con PDF kit', 30, 30);
+
+            /// contenido antes de la tabla 
+            doc.setDocumentHeader({ // setDocumentHeader ocupa solo el 10% de la pagina 
+                // aumentamos el porcentaje de uso
+                height: '20%'
+            }, () => {
+                doc
+                .fontSize(18)
+                .text('Boleto BAB',{
+                    width :420,
+                    align: 'center'
+                });
+                
+                // EL CONTENIDO AGREGADO SE COLOCA DEBAJO
+                // doc
+                // .fontSize(18)
+                // .text('Boleto BAB',{
+                //     width :420,
+                //     align: 'center'
+                // });
+            });
+
+
+
+            //CREACION DE LA TABLA
+            const infoBoletos = [
+                {
+                    id :  folio,
+                    inicio: dataTicket[0].startingPlace,
+                    destino: dataTicket[0].destinyPlace,
+                    dia: dataTicket[0].dateTravel,
+                    hora: dataTicket[0].hourTravel,
+                    precio: '$' + dataTicket[0].priceTravel
+                }
+            ];
+            // recibe las columnas de la tabla 
+            doc.addTable([
+                {key: 'id', label: 'FOLIO', align: 'left'},
+                {key: 'inicio', label: 'SALIDA', align: 'left'},
+                {key: 'destino', label: 'DESTINO', align: 'left'},
+                {key: 'dia', label: 'FECHA', align: 'left'},
+                {key: 'hora', label: 'HORA', align: 'left'},
+                {key: 'precio', label: 'PRECIO', align: 'left'},
+            ], infoBoletos, {
+                border: null,   // sin borde
+                width: "fill_body", // ancho que ocupa todo el cuerpo
+                striped: true, // 
+                stripedColors: ["#f6f6f6", "#d6c4dd"], // colores de la filas
+                cellsPadding: 2,
+                marginLeft: 5,
+                marginRight: 5,
+                headAlign: 'center' // alineacion de los textos 
+            });
+            //renderizamos la tabla 
+            doc.render();
+            doc.end();
+        } catch (error) {
+            res.json(error);
+        }
+    }); // fin de la conexion 
+    console.log(dataTicket);
+}
 
 
 controller.delete = (req, res) => { // eliminar boleto a traves de folio de compra 
