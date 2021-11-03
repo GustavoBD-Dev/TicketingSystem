@@ -11,7 +11,7 @@ router.get('/logout', mainController.logout);
 
 // Sentences to users
 router.post('/add', mainController.save);
-router.get('/delete/:id', mainController.delete);// recibira un id
+router.get('/delete/:folio', mainController.delete);// recibira un id
 router.get('/update/:id', mainController.edit);
 router.post('/update/:id', mainController.update);
 router.post('/userRegister', mainController.userRegister);

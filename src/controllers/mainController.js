@@ -39,7 +39,8 @@ controller.account = (req, res) => {
     req.getConnection((err, conn) => {
         //conn.query('SELECT * FROM purchasedTickets T, travelRoutes R WHERE T.idTravelRoute = R.idTravelRoute;', (err, tickets) => {
         //conn.query('SELECT * FROM purchasedTickets T, travelRoutes R, users U WHERE T.idTravelRoute = R.idTravelRoute = U.idUser = (SELECT idUser FROM users WHERE userName = ?)',
-        conn.query('SELECT * FROM purchasedTickets JOIN users ON users.idUser = purchasedTickets.idUser WHERE users.idUser = (SELECT idUser FROM users WHERE userName = ?);',
+        //conn.query('SELECT * FROM purchasedTickets JOIN users ON users.idUser = purchasedTickets.idUser WHERE users.idUser = (SELECT idUser FROM users WHERE userName = ?);',
+        conn.query('SELECT * FROM purchasedTickets JOIN users ON users.idUser = purchasedTickets.idUser JOIN travelRoutes ON travelRoutes.idTravelRoute = purchasedTickets.idTravelRoute WHERE users.idUser = (SELECT idUser FROM users WHERE userName = ?);',
             [req.session.name], (err, tickets) => {
                 if (err) {
                     res.json(err);
@@ -254,13 +255,35 @@ controller.update = (req, res) => {
 };
 
 
-controller.delete = (req, res) => {
-    const { id } = req.params;
-    req.getConnection((err, conn) => {
-        conn.query('DELETE FROM users WHERE id = ?', [id], (err, rows) => {
-            // redirecciona a la pagina con tabla sindato eliminado 
-            res.redirect('/');// pinta la tabla sin el dato
-        })
+controller.delete = (req, res) => { // eliminar boleto a traves de folio de compra 
+    // req.params contiene el numero de folio de compra 
+    const { folio } = req.params;
+    console.log('FOLIO A ELIMINAR :' , folio);
+    req.getConnection(async(err, conn) => {
+        const query = util.promisify(conn.query).bind(conn);
+        try {
+            // consulta de datos de boleto a Eliminar
+            const ticketDelete = await query(`SELECT * FROM travelRoutes WHERE idTravelRoute = (SELECT idTravelRoute FROM purchasedTickets WHERE folio = ${folio});`);
+            // eliminamos boleto del Registro
+            await query(`DELETE FROM purchasedTickets WHERE folio = ${folio};`);
+            //obtenemos los boletos del usuario
+            const tickets = await query(`SELECT * FROM purchasedTickets JOIN users ON users.idUser = purchasedTickets.idUser JOIN travelRoutes ON travelRoutes.idTravelRoute = purchasedTickets.idTravelRoute WHERE users.idUser = (SELECT idUser FROM users WHERE userName = '${req.session.name}')`);
+            // mostramos mensaje de eliminacion y refrescamos la cuenta con los tickets actualizados
+            res.render('account', {
+                login: true,
+                name: req.session.name,
+                data: tickets,
+                alert: true,
+                alertTitle: "HAS LIMINADO UN BOLETO!!",
+                alertMessage: `${ticketDelete.startingPlace}-${ticketDelete.destinyPlace} \n ${ticketDelete.dateTravel}/${ticketDelete.hourTravel}`,
+                alertIcon: "error",
+                timer: 6000,
+                showConfirmButton: false,// boton de confirmacion 
+                ruta: ''
+            });
+        } catch (error) {
+            res.json(error); // handle the error
+        }
     });
     // me envia un parametro de la url
     //console.log(req.params);
@@ -268,7 +291,7 @@ controller.delete = (req, res) => {
     //res.send("works");
 };
 
-controller.userRegister = async (req, res) => {
+controller.userRegister = async (req, res) => { // registro de usuario nuevo
     const fullNameUS = req.body.fullname;
     const userName = req.body.username;
     const passwordUs = req.body.password;
@@ -371,6 +394,7 @@ controller.purchase = async (req, res) => {
                 const travel = await query(`SELECT * FROM travelRoutes WHERE 
                     startingPlace = '${req.params.origenSelect}' AND destinyPlace = '${req.params.destinyPlace}';`);
                 console.log(user, travel);
+
                 // obtenemos fecha y hora del sistema
                 var hoy = new Date();
                 var fecha = hoy.getFullYear() + '-' + (hoy.getMonth() + 1) + '-' + hoy.getDate();
@@ -381,7 +405,7 @@ controller.purchase = async (req, res) => {
                     numberTickets,
                     fullPayment,
                     datePurchase,
-                    timePurchase,
+                    timePurchase,  
                     fileTicket
                 ) VALUES (
                     ${user[0].idUser},
@@ -392,6 +416,7 @@ controller.purchase = async (req, res) => {
                     '${hora}',
                     '${req.session.name}_${fecha}.txt');`);
 
+                // mostramos el boleto comprdo en la tabla de boletos
                 res.render('index', {
                     login: true,
                     name: req.session.name,
