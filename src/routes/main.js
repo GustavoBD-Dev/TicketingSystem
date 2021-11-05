@@ -29,5 +29,7 @@ router.get('/camiones', mainController.camiones);
 router.get('/pago/:origenSelect-:destinyPlace', mainController.pago);
 router.get('/registro', mainController.registro);
 
+router.get('/admin', mainController.admin);
+
 module.exports = router;
 

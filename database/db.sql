@@ -71,7 +71,7 @@ CREATE TABLE purchasedTickets
     fullPayment     DOUBLE NOT NULL,
     datePurchase    DATE NOT NULL,
     timePurchase    TIME NOT NULL,
-    fileTicket      VARCHAR(20) NOT NULL,
+    fileTicket      VARCHAR(60) NOT NULL,
     PRIMARY KEY (folio)
 );
 
@@ -87,7 +87,7 @@ mysql> DESCRIBE purchasedTickets;
 | fullPayment   | double       | NO   |     | NULL    |                |
 | datePurchase  | date         | NO   |     | NULL    |                |
 | timePurchase  | time         | NO   |     | NULL    |                |
-| fileTicket    | varchar(20)  | NO   |     | NULL    |                |
+| fileTicket    | varchar(60)  | NO   |     | NULL    |                |
 +---------------+--------------+------+-----+---------+----------------+
 8 rows in set (0.01 sec)
 */

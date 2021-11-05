@@ -8,6 +8,20 @@ const PDFDocument = require('pdfkit-construct');
 
 const controller = {};
 
+controller.admin = async (req, res) => {
+    req.getConnection((error, connection) => {
+        connection.query('SELECT * FROM travelRoutes', (error, rows) => {
+            if (error) {
+                res.json(error);
+                return;
+            }
+            res.render('admin', {
+                data: rows
+            });
+        });
+    });
+}
+
 
 controller.list = (req, res) => {
     // una vez que iniciamos sesion tenemos los datos del usuario 
