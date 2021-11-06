@@ -6,91 +6,226 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administrador</title>
-    <!-- <link rel="stylesheet" href="https://bootswatch.com/5/litera/bootstrap.min.css"> -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://bootswatch.com/5/litera/bootstrap.min.css">
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+        integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" /> -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css">
-    
+    <style>
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: "Lato", sans-serif;
+        }
+
+        /* Style the tab */
+        .tab {
+            float: left;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            width: 25%;
+            height: 800px;
+        }
+
+        /* Style the buttons inside the tab */
+        .tab button {
+            display: block;
+            background-color: inherit;
+            color: black;
+            padding: 22px 16px;
+            width: 100%;
+            border: none;
+            outline: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 17px;
+        }
+
+        /* Change background color of buttons on hover */
+        .tab button:hover {
+            background-color: #ddd;
+        }
+
+        /* Create an active/current "tab button" class */
+        .tab button.active {
+            background-color: #ccc;
+        }
+
+        /* Style the tab content */
+        .tabcontent {
+            float: left;
+            padding: 15px 12px;
+            border: 1px solid #ccc;
+            width: 70%;
+            border-left: none;
+            height: 800px;
+            display: none;
+        }
+
+        /* Clear floats after the tab */
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+    </style>
+
 </head>
 
 <body>
     <nav class="navbar navbar bg-dark">
         <!-- <a href="/" class="vanbar-brand">CRUD Nodejs MYSQL</a> -->
-        <div>
+        <div class="card-title">
             <h2><strong>ADMINISTRADOR BAB</strong></h2>
         </div>
-        <div class="col-md-5">
-            <div class="card-body">
-                <form action="">
-                    <div>
-                        <button type="submit" class="btn btn-light"><strong>DESCARGAR REPORTE</strong></button>
-                    </div>
-                </form>
-            </div>
-        </div>
     </nav>
-    <div class="container">
-        <br>
-        <br>
-        <br>
-    </div>
+    <div class="card-body">
+        <!-- <h2>ADMINISTRADOR</h2> -->
+        <p>Registros y reportes de BAB</p>
 
-    <div class="container">
-        <div class="row">
-            <div class="col-md-7">
-                <table id="routes" class="table table-hover">
-                    <thead>
-                        <tr class="table-dark">
-                            <!-- <th>n°</th> -->
-                            <th>ID</th>
-                            <th>Origen</th>
-                            <th>Destino</th>
-                            <th>Fecha</th>
-                            <th>Hora</th>
-                            <th>Precio</th>
-                            <th>Disponibles</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-
-                    </tbody>
-                </table>
-            </div>
-            <!-- <div class="col-md-5">
-                <div class="card">
-                    <div class="card-body">
-                        <div>
-                            <strong class="card-title">AGREGAR NUEVA RUTA</strong>
-                        </div>
-                        <form action="" method="post">
-                            <div class="form-group">
-                                <input type="text" name="fullname" placeholder="Inicio" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <input type="text" name="username" placeholder="Destino" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <input type="date" name="password" placeholder="Fecha" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <input type="time" name="email" placeholder="Hora" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <input type="number" name="email" placeholder="Precio" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <input type="number" name="email" placeholder="Disponibles" class="form-control">
-                            </div>
-                            <br>
-                            <div class="form-group">
-                                <button type="submit" class="btn btn-outline-success"><i class="fas fa-plus"></i></button>
-                            </div>
-                        </form>
-                    </div>
-                </div> -->
-            </div> 
+        <div class="tab">
+            <button class="tablinks" onmouseover="openView(event, 'addRoute')">AGREGAR RUTA</button>
+            <button class="tablinks" onmouseover="openView(event, 'showRoute')">VER RUTAS</button>
+            <button class="tablinks" onmouseover="openView(event, 'showTickets')">VER COMPRAS</button>
+            <button class="tablinks" onmouseover="openView(event, 'downloadReport')">DESCARGAR REPORTES</button>
         </div>
+
+        <div id="addRoute" class="tabcontent">
+            <br>
+            <div class="card">
+                <div class="card-body">
+                    <div>
+                        <strong class="card-title">AGREGAR NUEVA RUTA</strong>
+                    </div>
+                    <form action="/addRoute" method="post">
+                        <div class="form-group">
+                            <input type="text" name="startingPlace" placeholder="Inicio" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="destinyPlace" placeholder="Destino" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="dateTravel" placeholder="Fecha aaaa-mm-dd" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="hourTravel" placeholder="Hora hh:mm:ss" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <input type="number" name="priceTravel" placeholder="Precio" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <input type="number" name="availablePlaces" placeholder="Disponibles" class="form-control">
+                        </div>
+                        <br>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-outline-success">AGREGAR RUTA</i></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div id="showRoute" class="tabcontent">
+            <br>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+
+                        <table id="routes" class="table table-hover">
+                            <thead>
+                                <tr class="table-dark">
+                                    <!-- <th>n°</th> -->
+                                    <th>ID</th>
+                                    <th>ORIGEN</th>
+                                    <th>DESTINO</th>
+                                    <th>FECHASALIDA</th>
+                                    <th>HORA</th>
+                                    <th>PRECIO</th>
+                                    <th>DISPONIBLES</th>
+                                    <th>ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="showTickets" class="tabcontent">
+            <br>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+
+                        <table id="tickets" class="table table-hover">
+                            <thead>
+                                <tr class="table-dark">
+                                    <!-- <th>n°</th> -->
+                                    <th>FOLIO</th>
+                                    <th>USUARIO</th>
+                                    <th>RUTA</th>
+                                    <th>BOLETOS</th>
+                                    <th>TOTAL</th>
+                                    <th>FECHA</th>
+                                    <th>HORA</th>
+                                    <th>ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="downloadReport" class="tabcontent">
+            <div class="col-md-5">
+                <div class="row">
+                    <form action="/getPDFRoutes">
+                        <div>
+                            <button type="submit" class="btn btn-light"><strong>DESCARGAR REPORTE
+                                    RUTAS</strong></button>
+                        </div>
+                    </form>
+                </div>
+                <br>
+                <br>
+                <div class="row">
+                    <form action="/getPDFTickets">
+                        <div>
+                            <button type="submit" class="btn btn-light"><strong>DESCARGAR REPORTE
+                                    BOLETOS</strong></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="clearfix"></div>
+
+        <script>
+            function openView(evt, viewSelect) {
+                var i, tabcontent, tablinks;
+                tabcontent = document.getElementsByClassName("tabcontent");
+                for (i = 0; i < tabcontent.length; i++) {
+                    tabcontent[i].style.display = "none";
+                }
+                tablinks = document.getElementsByClassName("tablinks");
+                for (i = 0; i < tablinks.length; i++) {
+                    tablinks[i].className = tablinks[i].className.replace(" active", "");
+                }
+                document.getElementById(viewSelect).style.display = "block";
+                evt.currentTarget.className += " active";
+            }
+        </script>
     </div>
 </body>
 
@@ -100,51 +235,90 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         $('#routes').DataTable({
-            ajax:{
-                url:'/data',
+            ajax: {
+                url: '/dataRoutes',
                 dataSrc: ''
             },
             columns: [
-                {data: 'idTravelRoute'},
-                {data: 'startingPlace'},
-                {data: 'destinyPlace'},
-                {data: 'dateTravel'},
-                {data: 'hourTravel'},
-                {data: 'priceTravel'},
-                {data: 'availablePlaces'},
-                {data: null,
+                { data: 'idTravelRoute' },
+                { data: 'startingPlace' },
+                { data: 'destinyPlace' },
+                { data: 'dateTravel' },
+                { data: 'hourTravel' },
+                { data: 'priceTravel' },
+                { data: 'availablePlaces' },
+                {
+                    data: null,
                     "render": function (data) {
-                        return '<a onclick="confirmar('+data.idTravelRoute+')" class="btn btn-danger"><i class="fas fa-trash-alt"></i></a>'
+                        return '<a onclick="confirmar(' + data.idTravelRoute + ')" class="btn btn-danger">ELIMINAR</a>'
                     }
                 },
             ],// option to show rows 
             pageLength: 5,
-            lengthMenu: [[5,10,20,-1], [5,10,20,'TODOS']]
+            lengthMenu: [[5, 10, -1], [5, 10, 'TODOS']]
         });
-    } );
+        $('#tickets').DataTable({
+            ajax: {
+                url: '/dataTickets',
+                dataSrc: ''
+            },
+            columns: [
+                { data: 'folio' },
+                { data: 'idUser' },
+                { data: 'idTravelRoute' },
+                { data: 'numberTickets' },
+                { data: 'fullPayment' },
+                { data: 'datePurchase' },
+                { data: 'timePurchase' },
+                {
+                    data: null,
+                    "render": function (data) {
+                        return '<a onclick="confirmar(' + data.folio + ')" class="btn btn-danger">ELIMINAR</a>'
+                    }
+                },
+            ],// option to show rows 
+            pageLength: 5,
+            lengthMenu: [[5, 10, -1], [5, 10, 'TODOS']]
+        });
+    });
 
     function confirmar(idTravelRoute) {
+        Swal.fire({
+            title: 'Estas seguro de eliminar este registro',
+            text: "Esta accion no se puede revertir!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Si, eliminar!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location = "/deleteRoute/" + idTravelRoute;
+                Swal.fire(
+                    'Eliminado!',
+                    `El registro ${idTravelRoute} ha sido eliminado.`,
+                    'success'
+                )
+            }
+        })
+    }
+</script>
+
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <% if (typeof alert !="undefined" ) {%>
+        <script>
             Swal.fire({
-                title: 'Estas seguro de eliminar este registro',
-                text: "Esta accion no se puede revertir!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Si, eliminar!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location = "/deleteRoute/" + idTravelRoute;
-                    Swal.fire(
-                        'Eliminado!',
-                        `El registro ${idTravelRoute} ha sido eliminado.`,
-                        'success'
-                    )
-                }
+                title: "<%= alertTitle %>",
+                text: "<%= alertMessage %>",
+                icon: "<%= alertIcon %>",
+                showConfirmButton: "<%= showConfirmButton %>",
+                timer: "<%= timer %>"
+            }).then(() => {
+                window.location = '/<%= ruta %>'
             })
-        }
-</script>   
+        </script>
+    <% } %>
 
 </html>

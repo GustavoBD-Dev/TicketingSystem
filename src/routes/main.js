@@ -36,8 +36,12 @@ router.get('/pago/:origenSelect-:destinyPlace', mainController.pay);
 router.get('/registro', mainController.registro);
 // generate the view to admin
 router.get('/admin', mainController.admin);
-router.get('/data', mainController.data);
+router.get('/dataRoutes', mainController.dataRoutes); // get routes 
+router.get('/dataTickets', mainController.dataTickets); // get tickets 
 router.get('/deleteRoute/:idTravelRoute', mainController.deleteRoute);
+router.get('/getPDFRoutes', mainController.getPDFRoutes);
+router.get('/getPDFTickets', mainController.getPDFTickets);
+router.post('/addRoute', mainController.addRoute);
 
 module.exports = router;
 

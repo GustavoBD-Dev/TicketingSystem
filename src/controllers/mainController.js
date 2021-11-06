@@ -43,7 +43,7 @@ controller.admin = (request, response) => {
     });
 }
 
-controller.data = async (request, response) => { // get data of table travelRoutes and send JSON
+controller.dataRoutes = async (request, response) => { // get data of table travelRoutes and send JSON
     request.getConnection(async (error, connection) => {
         if (error) throw error; // error with the connection 
         const query = util.promisify(connection.query).bind(connection);
@@ -51,9 +51,21 @@ controller.data = async (request, response) => { // get data of table travelRout
             response.send(JSON.stringify(await query('SELECT * FROM travelRoutes')));
         } catch (error) {
             res.json(error);
-            return;
+            //return;
         }
     });
+}
+
+controller.dataTickets = async (request, response) => { // get data of table purchasedTickets
+    request.getConnection( async (err, conn) => {
+        if (err) throw err;
+        const query = util.promisify(conn.query).bind(conn);
+        try {
+            response.send(JSON.stringify(await query('SELECT * FROM purchasedTickets')));
+        } catch (error) {
+            res.json(error);
+        }
+    })
 }
 
 controller.deleteRoute = (request, response) => {
@@ -296,8 +308,17 @@ controller.getTicket = async (req, res) => { // ticket generation, pass folio pu
             //      (SELECT idTravelRoute FROM purchasedTickets WHERE folio = ${folio});`);
             const dataTicket = await query(`SELECT * FROM travelRoutes WHERE idTravelRoute = 
                 (SELECT idTravelRoute FROM purchasedTickets WHERE folio = ${folio});`);
+
+            const dataUser = await query(`SELECT * FROM users WHERE userName = '${req.session.name}'`)
+            console.log(req.session.name);
+            console.log(dataUser);
+            
             // instance of PDFDocument
-            const doc = new PDFDocument({ bufferPage: true });
+            const doc = new PDFDocument({
+                size: 'A4',
+                margins: {top: 20, left: 10, rigth: 10, bottom:20},
+                bufferPages: true,
+            });
             // Passing size to the addPage function
             //doc.addPage({size: 'A7'});
             // generate the filename customizer  
@@ -311,22 +332,31 @@ controller.getTicket = async (req, res) => { // ticket generation, pass folio pu
             doc.on('data', (data) => { stream.write(data) });
             // end the head
             doc.on('end', () => { stream.end() });
-            // function text receive how params the text to show 
-            // and the coordenates of the object
-            doc.text('Hola Mundo con PDF kit', 30, 30);
+            
             // content before the table  
             doc.setDocumentHeader({ // setDocumentHeader is setting 10% of page 
                 // increade head
-                height: '20%'
+                height: '10%'
             }, () => {
                 doc // set the text of head 
-                    .fontSize(18) // set the font size
+                    .fontSize(20) // set the font size
                     .text('Boleto BAB', {
-                        width: 420,
+                        width: 200,
                         align: 'center'
                     });
                 // add more content 
             });
+
+            // get date and hour our sistem
+            var hoy = new Date();
+            var fecha = hoy.getFullYear() + '-' + (hoy.getMonth() + 1) + '-' + hoy.getDate();
+            var hora = hoy.getHours() + ':' + hoy.getMinutes() + ':' + hoy.getSeconds();
+
+            // function text receive how params the text to show 
+            // and the coordenates of the object
+            doc.text(`${dataUser[0].fullNameUs}`, 30, 30);
+            doc.text(`${dataUser[0].emailUser}`, 30, 45);
+            doc.text(`Fecha: ${fecha} ${hora}`, 30, 60)
 
             //create table 
             const infoBoletos = [
@@ -339,6 +369,7 @@ controller.getTicket = async (req, res) => { // ticket generation, pass folio pu
                     precio: '$' + dataTicket[0].priceTravel
                 }
             ];
+            
             // receive the columns of table 
             doc.addTable([
                 { key: 'id', label: 'FOLIO', align: 'left' },
@@ -349,14 +380,15 @@ controller.getTicket = async (req, res) => { // ticket generation, pass folio pu
                 { key: 'precio', label: 'PRECIO', align: 'left' },
             ], infoBoletos, {
                 border: null,   // whitout border
-                width: "fill_body", // any body
+                width: "auto", // any body
                 striped: true,
                 stripedColors: ["#f6f6f6", "#d6c4dd"], // rows colors 
-                cellsPadding: 2,
-                marginLeft: 5,
-                marginRight: 5,
-                headAlign: 'center' // text aling  
+                cellsPadding: 5,
+                marginLeft: 50,
+                marginRight: 50,
+                headAlign: 'center', // text aling  
             });
+
             //render table  
             doc.render();
             doc.end();
@@ -490,6 +522,16 @@ controller.auth = async (req, res) => {
                         timer: 2000,
                         ruta: ''
                     })
+                } else {
+                    res.render('registro', {
+                        alert: true,
+                        alertTitle: "Error",
+                        alertMessage: "Usuario y/o contaseña incorrectas",
+                        alertIcon: "error",
+                        showConfirmButton: true,// button confirm
+                        timer: 2000,
+                        ruta: 'registro' // redirect after alert
+                    });
                 }
             }
         } catch (error) {
@@ -575,8 +617,170 @@ controller.purchase = async (req, res) => {
 }
 
 
+controller.getPDFRoutes = (req, res) => {
+    req.getConnection(async (error, conn) => {
+        if (error) throw error; // error with the connection 
+        const query = util.promisify(conn.query).bind(conn);
+        try {
+            //res.send(JSON.stringify(await query('SELECT * FROM travelRoutes')));
+            const data = await query('SELECT * FROM travelRoutes');
+           
+            // create a document 
+            const doc = new PDFDocument({
+                size: 'A4',
+                margins: {top: 20, left: 10, rigth: 10, bottom:20},
+                bufferPages: true,
+            });
 
+            const filename = `Report_${Date()}.pdf`;
+            // write the head 
+            const stream = res.writeHead(200, {
+                'content-Type': 'application/pdf',
+                'content-disposition': `attachment;filename=${filename}`
+            });
+            // any data was created passing to head 
+            doc.on('data', (data) => { stream.write(data) });
+            // end the head
+            doc.on('end', () => { stream.end() });
 
+            doc.setDocumentHeader({ // setDocumentHeader is setting 10% of page 
+                // increade head
+                height: '5%'
+            }, () => {
+                doc // set the text of head 
+                    .fontSize(18) // set the font size
+                    .text('Report  _BAB_', {
+                        width: 420,
+                        align: 'center'
+                    });
+                // add more content 
+            });
+
+            // add table
+            doc.addTable(
+                [
+                    {key:   'idTravelRoute',    label:  'ID',       align: 'center'},
+                    {key:   'startingPlace',    label:  'INICIO',   align: 'center'},
+                    {key:   'destinyPlace',     label:  'DESTINO',  align: 'center'},
+                    {key:   'dateTravel',       label:  'FECHA',    align: 'center'},
+                    {key:   'hourTravel',       label:  'HORA',     align: 'center'},
+                    {key:   'priceTravel',      label:  'PRECIO',   align: 'center'},
+                    {key:   'availablePlaces',  label:  'LUGARES',  align: 'center'},
+                ],
+                data, { // 
+                    border: null,   // whitout border
+                    width: "auto", // any body
+                    striped: true,
+                    stripedColors: ["#f6f6f6", "#d6c4dd"], // rows colors 
+                    cellsPadding: 10,
+                    marginLeft: 45,
+                    marginRight: 45,
+                    headAlign: 'center' // text aling 
+                });
+                
+                // render tables
+                doc.render();
+                doc.end();
+          
+        } catch (error) {
+            res.json(error.stack);
+            return;
+        }
+    });
+}
+
+controller.getPDFTickets = (req, res) => {
+    req.getConnection(async (error, conn) => {
+        if (error) throw error; // error with the connection 
+        const query = util.promisify(conn.query).bind(conn);
+        try {
+            //res.send(JSON.stringify(await query('SELECT * FROM travelRoutes')));
+            const data = await query('SELECT * FROM purchasedTickets');
+           
+            // create a document 
+            const doc = new PDFDocument({
+                size: 'A4',
+                margins: {top: 20, left: 10, rigth: 10, bottom:20},
+                bufferPages: true,
+            });
+
+            const filename = `ReportTickets_${Date()}.pdf`;
+            // write the head 
+            const stream = res.writeHead(200, {
+                'content-Type': 'application/pdf',
+                'content-disposition': `attachment;filename=${filename}`
+            });
+            // any data was created passing to head 
+            doc.on('data', (data) => { stream.write(data) });
+            // end the head
+            doc.on('end', () => { stream.end() });
+
+            doc.setDocumentHeader({ // setDocumentHeader is setting 10% of page 
+                // increade head
+                height: '5%'
+            }, () => {
+                doc // set the text of head 
+                    .fontSize(18) // set the font size
+                    .text('Report Tickets  _BAB_', {
+                        width: 420,
+                        align: 'center'
+                    });
+                // add more content 
+            });
+            // add table
+            doc.addTable(
+                [
+                    {key:   'folio',        label:  'FOLIO',    align: 'center'},
+                    {key:   'idUser',       label:  'USUARIO',  align: 'center'},
+                    {key:   'idTravelRoute',label:  'RUTA',     align: 'center'},
+                    {key:   'numberTickets',label:  'BOLETOS',  align: 'center'},
+                    {key:   'fullPayment',  label:  'TOTAL',    align: 'center'},
+                    {key:   'datePurchase', label:  'FECHA',    align: 'center'},
+                    {key:   'timePurchase', label:  'HORA',     align: 'center'},
+                ],
+                data, { // 
+                    border: null,   // whitout border
+                    width: "auto", // any body
+                    striped: true,
+                    stripedColors: ["#f6f6f6", "#d6c4dd"], // rows colors 
+                    cellsPadding: 10,
+                    marginLeft: 45,
+                    marginRight: 45,
+                    headAlign: 'center' // text aling 
+                });
+                
+                // render tables
+                doc.render();
+                doc.end();
+          
+        } catch (error) {
+            res.json(error.stack);
+            return;
+        }
+    });
+}
+
+controller.addRoute = (req, res) => {
+    //console.log(req.body);
+    const data = req.body;
+    req.getConnection((err, conn) => {
+        conn.query('INSERT INTO travelRoutes SET ?', [data], (err, rows) => {
+            if (err) {
+                console.error('error connecting: ' + err.stack);
+                return;
+            }
+            res.render('admin', {
+                alert: true,
+                alertTitle: "REGISTRO EXITOSO",
+                alertMessage: "Se ha agregado una nueva ruta",
+                alertIcon: "succes",
+                timer: 1500,
+                showConfirmButton: false,
+                ruta: '/admin'
+            });
+        });
+    });
+}
 
 
 module.exports = controller;
