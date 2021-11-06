@@ -6,7 +6,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administrador</title>
-    <link rel="stylesheet" href="https://bootswatch.com/5/litera/bootstrap.min.css">
+    <!-- <link rel="stylesheet" href="https://bootswatch.com/5/litera/bootstrap.min.css"> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css">
+    
 </head>
 
 <body>
@@ -34,10 +38,10 @@
     <div class="container">
         <div class="row">
             <div class="col-md-7">
-                <table class="table table-hover">
+                <table id="routes" class="table table-hover">
                     <thead>
                         <tr class="table-dark">
-                            <th>n°</th>
+                            <!-- <th>n°</th> -->
                             <th>ID</th>
                             <th>Origen</th>
                             <th>Destino</th>
@@ -49,45 +53,11 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <% if (data) { %>
-                            <% for (var i=0; i < data.length; i++) {%>
-                                <tr>
-                                    <td>
-                                        <%= (i + 1) %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].idTravelRoute %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].startingPlace %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].destinyPlace %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].dateTravel %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].hourTravel %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].priceTravel %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].availablePlaces %>
-                                    </td>
-                                    <td>
-                                        <!-- eliminamos los archivos pasando l id de la base  -->
-                                        <a href="" class="btn btn-danger">ELIMINAR</a>
-                                        <!-- <a href="" class="btn btn-info">ACTUALIZAR</a> -->
-                                    </td>
-                                </tr>
-                                <% } %>
-                                    <% } %>
+
                     </tbody>
                 </table>
             </div>
-            <div class="col-md-5">
+            <!-- <div class="col-md-5">
                 <div class="card">
                     <div class="card-body">
                         <div>
@@ -114,14 +84,67 @@
                             </div>
                             <br>
                             <div class="form-group">
-                                <button type="submit" class="btn btn-outline-success">Agregar Ruta</button>
+                                <button type="submit" class="btn btn-outline-success"><i class="fas fa-plus"></i></button>
                             </div>
                         </form>
                     </div>
-                </div>
-            </div>
+                </div> -->
+            </div> 
         </div>
     </div>
 </body>
+
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $(document).ready(function() {
+        $('#routes').DataTable({
+            ajax:{
+                url:'/data',
+                dataSrc: ''
+            },
+            columns: [
+                {data: 'idTravelRoute'},
+                {data: 'startingPlace'},
+                {data: 'destinyPlace'},
+                {data: 'dateTravel'},
+                {data: 'hourTravel'},
+                {data: 'priceTravel'},
+                {data: 'availablePlaces'},
+                {data: null,
+                    "render": function (data) {
+                        return '<a onclick="confirmar('+data.idTravelRoute+')" class="btn btn-danger"><i class="fas fa-trash-alt"></i></a>'
+                    }
+                },
+            ],// option to show rows 
+            pageLength: 5,
+            lengthMenu: [[5,10,20,-1], [5,10,20,'TODOS']]
+        });
+    } );
+
+    function confirmar(idTravelRoute) {
+            Swal.fire({
+                title: 'Estas seguro de eliminar este registro',
+                text: "Esta accion no se puede revertir!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Si, eliminar!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location = "/deleteRoute/" + idTravelRoute;
+                    Swal.fire(
+                        'Eliminado!',
+                        `El registro ${idTravelRoute} ha sido eliminado.`,
+                        'success'
+                    )
+                }
+            })
+        }
+</script>   
 
 </html>

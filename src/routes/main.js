@@ -1,35 +1,43 @@
-const express = require('express');
-const router = express.Router();
+const { application } = require('express');
+const express = require('express'); // require the module
+const router = express.Router(); 
 
 const mainController = require('../controllers/mainController');
 
-// url que el servidor pueda manejar 
-// llamamos a la funcion list de user controller
-router.get('/', mainController.list); // render de pagina de inicio INICIO DE SESION
+
+// method GET: the browser request data 
+// method POST: the browser send data 
+// method PUT: update the data in browser
+// methos DELETE: delete the data in browser
+
+// call the function list of user controller
+router.get('/', mainController.list); 
 router.get('/logout', mainController.logout);
 
 
 // Sentences to users
 router.post('/add', mainController.save);
-router.get('/delete/:folio', mainController.delete);// recibira un id
-router.get('/update/:id', mainController.edit);
-router.post('/update/:id', mainController.update);
+router.get('/delete/:folio', mainController.delete);// revecive in params the folio 
+router.get('/update/:id', mainController.edit); // receive in params the id 
+router.post('/update/:id', mainController.update); // receive in params the id
 router.post('/userRegister', mainController.userRegister);
 router.post('/auth', mainController.auth);
-router.post('/purchase/:origenSelect-:destinyPlace', mainController.purchase); // compra de boleto
-router.get('/get-ticket/:folio', mainController.getTicket); // imprimir boleto
-// Sentntences to rutas 
-router.get('/destinos-to/:origen', mainController.destinos);
+// receive in params the origen select and destiny place
+router.post('/purchase/:origenSelect-:destinyPlace', mainController.purchase); 
+// receive in params the folio to print ticket
+router.get('/get-ticket/:folio', mainController.getTicket);
+// receive in params the origin to find the destiny avaliables for this 
+router.get('/destinos-to/:origin', mainController.destinations);
 router.get('/account', mainController.account);
-//router.get('/rutes/:destino', mainController.destinos);
-
-// redireccion a render del menu de navegacion
+// redirect to nav bar 
 router.get('/origenes', mainController.origenes);
 router.get('/camiones', mainController.camiones);
-router.get('/pago/:origenSelect-:destinyPlace', mainController.pago);
+router.get('/pago/:origenSelect-:destinyPlace', mainController.pay);
 router.get('/registro', mainController.registro);
-
+// generate the view to admin
 router.get('/admin', mainController.admin);
+router.get('/data', mainController.data);
+router.get('/deleteRoute/:idTravelRoute', mainController.deleteRoute);
 
 module.exports = router;
 

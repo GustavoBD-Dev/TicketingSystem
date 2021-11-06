@@ -1,91 +1,113 @@
 const { render } = require("ejs");
-var bcrypt = require('bcryptjs');// inovamos
+var bcryptjs = require('bcryptjs');
 const { route, connect } = require("../routes/main");
 const util = require('util');
 //const PDFDocument = require('pdfkit');
 const PDFDocument = require('pdfkit-construct');
-//const fs = require('fs'); // modulo de nodejs
+const connection = require("express-myconnection");
+const { error } = require("console");
+const { request } = require("http");
+const { response } = require("express");
+//const fs = require('fs'); // module de nodejs
 
 const controller = {};
 
-controller.admin = async (req, res) => {
-    req.getConnection((error, connection) => {
-        connection.query('SELECT * FROM travelRoutes', (error, rows) => {
-            if (error) {
-                res.json(error);
-                return;
-            }
-            res.render('admin', {
-                data: rows
-            });
-        });
-    });
-}
-
-
 controller.list = (req, res) => {
-    // una vez que iniciamos sesion tenemos los datos del usuario 
+    // if init session, we can get session name 
     if (req.session.loggedIn) {
         res.render('index', {
             login: true,
             name: req.session.name
         });
-    } else {
+    } else { // if not session, set default session name 
         res.render('index', {
             login: false,
             name: 'USUARIO'
         });
     }
-    // obtebemos la conexion
-    /*req.getConnection((err, conn) => {
-        conn.query('SELECT * FROM users', (err, users) => {
-            if (err) {
-                res.json(err);
-            }
-            // pintamos una vista
-            console.log(users);
-            res.render('index', { // primer objeto en renderizar
-                data: users
-            });
-        });
-    });*/
 };
+
+controller.admin = (request, response) => {
+    request.getConnection(async (error, connection) => {
+        if (error) throw error; // error with the connection 
+        const query = util.promisify(connection.query).bind(connection);
+        try {
+            const rows = await query('SELECT * FROM travelRoutes');
+            response.render('admin', {
+                data: rows
+            })
+        } catch (error) {
+            res.json(error);
+            return;
+        }
+    });
+}
+
+controller.data = async (request, response) => { // get data of table travelRoutes and send JSON
+    request.getConnection(async (error, connection) => {
+        if (error) throw error; // error with the connection 
+        const query = util.promisify(connection.query).bind(connection);
+        try {
+            response.send(JSON.stringify(await query('SELECT * FROM travelRoutes')));
+        } catch (error) {
+            res.json(error);
+            return;
+        }
+    });
+}
+
+controller.deleteRoute = (request, response) => {
+    console.log('Ruta a eliminar', request.params.idTravelRoute)
+    // req.params contains idTravelRoute will deleted
+    const { idTravelRoute } = request.params;
+    console.log(`TICKET  ${idTravelRoute} WILL BE DELETED`);
+    request.getConnection(async (err, conn) => {
+        if (err) throw err; // error with the connection 
+        const query = util.promisify(conn.query).bind(conn);
+        try {
+            // query to delete travelRoute with idTravelRoute
+            await query(`DELETE FROM travelRoutes WHERE idTravelRoute = ${idTravelRoute};`);
+            response.redirect('/admin');// update the window with new rows
+        } catch (error) {
+            response.json(error); // handle the error
+        }
+    });
+}
 
 controller.account = (req, res) => {
     // get connection with database
-    req.getConnection((err, conn) => {
-        //conn.query('SELECT * FROM purchasedTickets T, travelRoutes R WHERE T.idTravelRoute = R.idTravelRoute;', (err, tickets) => {
-        //conn.query('SELECT * FROM purchasedTickets T, travelRoutes R, users U WHERE T.idTravelRoute = R.idTravelRoute = U.idUser = (SELECT idUser FROM users WHERE userName = ?)',
-        //conn.query('SELECT * FROM purchasedTickets JOIN users ON users.idUser = purchasedTickets.idUser WHERE users.idUser = (SELECT idUser FROM users WHERE userName = ?);',
-        conn.query('SELECT * FROM purchasedTickets JOIN users ON users.idUser = purchasedTickets.idUser JOIN travelRoutes ON travelRoutes.idTravelRoute = purchasedTickets.idTravelRoute WHERE users.idUser = (SELECT idUser FROM users WHERE userName = ?);',
-            [req.session.name], (err, tickets) => {
+    req.getConnection((error, conn) => {
+        if (error) throw res.send(error); // error with the connection 
+        //conn.query('SELECT * FROM purchasedTickets JOIN users ON users.idUser = purchasedTickets.idUser JOIN travelRoutes ON travelRoutes.idTravelRoute = purchasedTickets.idTravelRoute WHERE users.idUser = (SELECT idUser FROM users WHERE userName = ?);',
+        conn.query(`SELECT * FROM purchasedTickets JOIN users 
+        ON users.idUser = purchasedTickets.idUser JOIN travelRoutes 
+        ON travelRoutes.idTravelRoute = purchasedTickets.idTravelRoute 
+        WHERE users.idUser = (SELECT idUser FROM users WHERE userName = '${req.session.name}');`,
+            (err, tickets) => {
                 if (err) {
                     res.json(err);
                 }
-                console.log(tickets);
-                
-                // primera cuenta, debemos obtener los atributos de nombre completo
-                //console.log(tickets);
                 if (tickets.length) {
-                    // el usuario ya ha comprado boletos, enviamos datos de boletos
+                    // exists tickets in account  
                     console.log('EL USUARIO YA TIENE TICKETS COMPRADOS');
                     console.log(tickets);
-                    res.render('account', {
+                    res.render('account', { // send tickets 
                         login: true,
                         name: req.session.name,
                         data: tickets,
                     });
-                } else {
+                } else { // no tickets in account  
+                    // get the user data 
                     conn.query('select * from users where userName = ?',
-                        [req.session.name], async (err, rows) => {
+                        [req.session.name], async (err, userData) => {
                             if (err) {
                                 res.json(err);
                             }
-                            console.log(rows);
-                            res.render('account', {
+                            console.log(userData);
+                            res.render('account', { // send user data to account 
                                 login: true,
                                 name: req.session.name,
-                                data: rows
+                                data: userData
                             })
                         });
                 }
@@ -94,8 +116,7 @@ controller.account = (req, res) => {
 }
 
 controller.logout = (req, res) => {
-    req.session.destroy(() => { // despues de cerrar sesion redirige a inicio
-        //res.redirect('/');
+    req.session.destroy(() => { // after close session 
         res.render('index', {
             login: false,
             name: 'USUARIO',
@@ -111,30 +132,29 @@ controller.logout = (req, res) => {
 }
 
 controller.origenes = (req, res) => {// render a rutas.ejs
-    //console.log(req.body);
     req.getConnection((err, conn) => {// get the connection
-        conn.query('SELECT DISTINCT startingPlace FROM travelRoutes', (err, rutas) => {
+        if (err) throw err; // error with the connection 
+        conn.query('SELECT DISTINCT startingPlace FROM travelRoutes', (err, starts) => {
             if (err) {
                 res.json(err);
             }
-            console.log(rutas, ">>"); // rutas contiene lugar de destino
-            if (req.session.loggedIn) { // si ya inicio sesion 
+            console.log(starts); // starts contains places od starting 
+            if (req.session.loggedIn) { // if the user active session 
                 res.render('origenes', {
                     login: true,
                     name: req.session.name,
-                    data: rutas,
-
+                    data: starts,
                 });
-            } else {
+            } else {// the user not session active 
                 res.render('origenes', {
                     login: false,
                     name: 'USUARIO',
-                    data: rutas
+                    data: starts
                 });
             } // fin de else
         });
     });
-}; // end 
+}; // end origenes 
 
 
 controller.camiones = (req, res) => {// render a camiones.ejs
@@ -149,40 +169,37 @@ controller.camiones = (req, res) => {// render a camiones.ejs
             name: 'USUARIO',
         });
     } // fin de else
-
-
     //res.render('camiones');
 };
 
-controller.pago = (req, res) => {// render a pago.ejs
-    // obtenemos el inicio y destino de los parametros
-    const inicio = req.params.origenSelect;
-    const final = req.params.destinyPlace;
-    console.log('HACER COMPRA CON ESTE DATO', inicio, final);;
-
-    // obtenemos el precio de la ruta
-    req.getConnection((err, conn) => {
-        conn.query('SELECT * FROM travelRoutes WHERE startingPlace = ? AND destinyPlace = ?',
-            [inicio, final], (err, infoTravel) => {
+controller.pay = (req, res) => {
+    // get start and detiny of the route 
+    const start = req.params.origenSelect;
+    const ended = req.params.destinyPlace;
+    console.log('HACER COMPRA CON ESTE DATO', start, ended);;
+    // get price of route
+    req.getConnection((error, connection) => {
+        if (error) throw error; // error with the connection 
+        connection.query(`SELECT * FROM travelRoutes WHERE startingPlace = '${start}' AND destinyPlace = '${ended}'`,
+            (err, infoTravel) => {
                 if (err) {
                     res.json(err);
                 }
-                console.log(">>>", infoTravel);
-
-                if (req.session.loggedIn) { // si ya inicio sesion 
-                    res.render('pagos', {
+                console.log("INFO [travel]: ", infoTravel);
+                if (req.session.loggedIn) { // session active
+                    res.render('pagos', { // send the data 
                         login: true,
                         name: req.session.name,
                         data: infoTravel
                     });
-                } else {
+                } else { // session inactive
                     res.render('pagos', {
                         login: false,
                         name: 'USUARIO',
-                        data: infoTravel
+                        data: infoTravel // sen data
                     });
-                } // fin de else
-            })
+                }
+            }); // end getConnection
     });
 };
 
@@ -190,36 +207,31 @@ controller.registro = (req, res) => {// render a registro.ejs
     res.render('registro');
 };
 
-
-
-/////////// SENTENCES SQL TO ROUTES ///////////////// https://bootswatch.com/materia/
-
-controller.destinos = (req, res) => { // get the routes availables
-    const { origen } = req.params;
+controller.destinations = (req, res) => { // get the destinations availables
+    const { origin } = req.params;
     req.getConnection((err, conn) => {
+        if (err) throw err; // error with the connection 
+        // we get destinations places to start place 
         conn.query('SELECT destinyPlace FROM travelRoutes WHERE startingPlace = ?',
-            [origen], (err, rutas) => {
+            [origin], (err, rutas) => {
                 if (err) {
                     res.json(err);
                 }
-                //console.log(rutas); // mostramos objetos en consola
-                if (req.session.loggedIn) { // si ya inicio sesion 
+                if (req.session.loggedIn) { // active session 
                     res.render('destinos', {
                         login: true,
                         name: req.session.name,
                         data: rutas,
-                        origenSelect: origen
+                        origenSelect: origin
                     });
                 } else {
                     res.render('destinos', {
                         login: false,
                         name: 'USUARIO',
                         data: rutas,
-                        origenSelect: origen
+                        origenSelect: origin
                     });
                 } // fin de else
-                // redirecciona a la pagina con tabla sindato eliminado 
-                //res.redirect('/');// pinta la tabla sin el dato
             });
     });
 };
@@ -271,61 +283,55 @@ controller.update = (req, res) => {
     });
 };
 
-controller.getTicket = async (req, res) => { // generacion de tickets
-    // Obtenemos el folio de compra 
+controller.getTicket = async (req, res) => { // ticket generation, pass folio purchased
+    // we get pruchased folio in params
     const folio = req.params.folio;
-    //Obtenemos los datos del boleto por el folio de compra de params 
-    req.getConnection( async (err, conn) => {
+    // get the data ticket with he folio  
+    req.getConnection(async (err, conn) => {
+        if (err) throw err; // error with the connection 
         const query = util.promisify(conn.query).bind(conn);
         try {
-            // consulta de datos de boleto a Eliminar
-            const dataTicket = await query(`SELECT * FROM travelRoutes WHERE idTravelRoute = (SELECT idTravelRoute FROM purchasedTickets WHERE folio = ${folio});`);
-            // instancia de PDF
-            //const doc = new PDFDocument({bufferPage: true, size: 'A7'});
-            const doc = new PDFDocument({bufferPage: true});
+            // data query of ticket delete 
+            //const dataTicket = await query(`SELECT * FROM travelRoutes WHERE idTravelRoute = 
+            //      (SELECT idTravelRoute FROM purchasedTickets WHERE folio = ${folio});`);
+            const dataTicket = await query(`SELECT * FROM travelRoutes WHERE idTravelRoute = 
+                (SELECT idTravelRoute FROM purchasedTickets WHERE folio = ${folio});`);
+            // instance of PDFDocument
+            const doc = new PDFDocument({ bufferPage: true });
             // Passing size to the addPage function
             //doc.addPage({size: 'A7'});
-            // generamos el nombre del archivo personalizado 
+            // generate the filename customizer  
             const filename = `${req.session.name}_${folio}.pdf`;
+            // write the head 
             const stream = res.writeHead(200, {
                 'content-Type': 'application/pdf',
-                'content-disposition' : `attachment;filename=${filename}`
+                'content-disposition': `attachment;filename=${filename}`
             });
-            // toda la data que se crea se pasa a traves del enacbezado
-            doc.on('data', (data) => {stream.write(data)});
-            // terminamos el encabezado
-            doc.on('end', () => {stream.end()});
-            // Funcion text recibe como parametro los que queremos mostrar 
-            // parametros adicionales muestra la coordenada donde se muestra el msm
+            // any data was created passing to head 
+            doc.on('data', (data) => { stream.write(data) });
+            // end the head
+            doc.on('end', () => { stream.end() });
+            // function text receive how params the text to show 
+            // and the coordenates of the object
             doc.text('Hola Mundo con PDF kit', 30, 30);
-
-            /// contenido antes de la tabla 
-            doc.setDocumentHeader({ // setDocumentHeader ocupa solo el 10% de la pagina 
-                // aumentamos el porcentaje de uso
+            // content before the table  
+            doc.setDocumentHeader({ // setDocumentHeader is setting 10% of page 
+                // increade head
                 height: '20%'
             }, () => {
-                doc
-                .fontSize(18)
-                .text('Boleto BAB',{
-                    width :420,
-                    align: 'center'
-                });
-                
-                // EL CONTENIDO AGREGADO SE COLOCA DEBAJO
-                // doc
-                // .fontSize(18)
-                // .text('Boleto BAB',{
-                //     width :420,
-                //     align: 'center'
-                // });
+                doc // set the text of head 
+                    .fontSize(18) // set the font size
+                    .text('Boleto BAB', {
+                        width: 420,
+                        align: 'center'
+                    });
+                // add more content 
             });
 
-
-
-            //CREACION DE LA TABLA
+            //create table 
             const infoBoletos = [
                 {
-                    id :  folio,
+                    id: folio,
                     inicio: dataTicket[0].startingPlace,
                     destino: dataTicket[0].destinyPlace,
                     dia: dataTicket[0].dateTravel,
@@ -333,49 +339,59 @@ controller.getTicket = async (req, res) => { // generacion de tickets
                     precio: '$' + dataTicket[0].priceTravel
                 }
             ];
-            // recibe las columnas de la tabla 
+            // receive the columns of table 
             doc.addTable([
-                {key: 'id', label: 'FOLIO', align: 'left'},
-                {key: 'inicio', label: 'SALIDA', align: 'left'},
-                {key: 'destino', label: 'DESTINO', align: 'left'},
-                {key: 'dia', label: 'FECHA', align: 'left'},
-                {key: 'hora', label: 'HORA', align: 'left'},
-                {key: 'precio', label: 'PRECIO', align: 'left'},
+                { key: 'id', label: 'FOLIO', align: 'left' },
+                { key: 'inicio', label: 'SALIDA', align: 'left' },
+                { key: 'destino', label: 'DESTINO', align: 'left' },
+                { key: 'dia', label: 'FECHA', align: 'left' },
+                { key: 'hora', label: 'HORA', align: 'left' },
+                { key: 'precio', label: 'PRECIO', align: 'left' },
             ], infoBoletos, {
-                border: null,   // sin borde
-                width: "fill_body", // ancho que ocupa todo el cuerpo
-                striped: true, // 
-                stripedColors: ["#f6f6f6", "#d6c4dd"], // colores de la filas
+                border: null,   // whitout border
+                width: "fill_body", // any body
+                striped: true,
+                stripedColors: ["#f6f6f6", "#d6c4dd"], // rows colors 
                 cellsPadding: 2,
                 marginLeft: 5,
                 marginRight: 5,
-                headAlign: 'center' // alineacion de los textos 
+                headAlign: 'center' // text aling  
             });
-            //renderizamos la tabla 
+            //render table  
             doc.render();
             doc.end();
         } catch (error) {
             res.json(error);
         }
-    }); // fin de la conexion 
+    }); // end connection
     console.log(dataTicket);
 }
 
-
-controller.delete = (req, res) => { // eliminar boleto a traves de folio de compra 
-    // req.params contiene el numero de folio de compra 
+controller.delete = (req, res) => { // delete ticket with folio 
+    // req.params contains number of purchased folio
     const { folio } = req.params;
-    console.log('FOLIO A ELIMINAR :' , folio);
-    req.getConnection(async(err, conn) => {
+    console.log(`TICKET  ${folio} WILL BE DELETED`);
+    req.getConnection(async (err, conn) => {
+        if (err) throw err; // error with the connection 
         const query = util.promisify(conn.query).bind(conn);
         try {
-            // consulta de datos de boleto a Eliminar
-            const ticketDelete = await query(`SELECT * FROM travelRoutes WHERE idTravelRoute = (SELECT idTravelRoute FROM purchasedTickets WHERE folio = ${folio});`);
-            // eliminamos boleto del Registro
+            // query to data ticket to delete
+            //const ticketDelete = await query(`SELECT * FROM travelRoutes WHERE idTravelRoute = 
+            //      (SELECT idTravelRoute FROM purchasedTickets WHERE folio = ${folio});`);
+            const ticketDelete = await query(`SELECT * FROM travelRoutes WHERE idTravelRoute = 
+            (SELECT idTravelRoute FROM purchasedTickets WHERE folio = ${folio});`);
+            // delete ticket of table 
             await query(`DELETE FROM purchasedTickets WHERE folio = ${folio};`);
-            //obtenemos los boletos del usuario
-            const tickets = await query(`SELECT * FROM purchasedTickets JOIN users ON users.idUser = purchasedTickets.idUser JOIN travelRoutes ON travelRoutes.idTravelRoute = purchasedTickets.idTravelRoute WHERE users.idUser = (SELECT idUser FROM users WHERE userName = '${req.session.name}')`);
-            // mostramos mensaje de eliminacion y refrescamos la cuenta con los tickets actualizados
+            // get total tickets updated of user 
+            //const tickets = await query(`SELECT * FROM purchasedTickets JOIN users ON users.idUser = 
+            //      purchasedTickets.idUser JOIN travelRoutes ON travelRoutes.idTravelRoute = 
+            //      purchasedTickets.idTravelRoute WHERE users.idUser = (SELECT idUser FROM users WHERE userName = 
+            //      '${req.session.name}')`);
+            const tickets = await query(
+                `SELECT * FROM purchasedTickets JOIN users ON users.idUser = purchasedTickets.idUser 
+                JOIN travelRoutes ON travelRoutes.idTravelRoute = purchasedTickets.idTravelRoute 
+                WHERE users.idUser = (SELECT idUser FROM users WHERE userName = '${req.session.name}')`);
+            // show the message to delete and refresh the page whit the tickets
             res.render('account', {
                 login: true,
                 name: req.session.name,
@@ -385,75 +401,86 @@ controller.delete = (req, res) => { // eliminar boleto a traves de folio de comp
                 alertMessage: `${ticketDelete.startingPlace}-${ticketDelete.destinyPlace} \n ${ticketDelete.dateTravel}/${ticketDelete.hourTravel}`,
                 alertIcon: "error",
                 timer: 6000,
-                showConfirmButton: false,// boton de confirmacion 
+                showConfirmButton: false,
                 ruta: ''
             });
         } catch (error) {
             res.json(error); // handle the error
         }
     });
-    // me envia un parametro de la url
-    //console.log(req.params);
-    //console.log(req.params.id);
-    //res.send("works");
 };
 
-controller.userRegister = async (req, res) => { // registro de usuario nuevo
+controller.userRegister = async (req, res) => { // register new user 
+    // get the data 
     const fullNameUS = req.body.fullname;
     const userName = req.body.username;
-    const passwordUs = req.body.password;
+    const passwordUs = await bcryptjs.hash(req.body.password, 8);
     const emailUser = req.body.email;
     const credit = '0.0';
-    console.log(req.body);
-    //let passwordHaash = await bcryptjs.hash(pass, 8);
-    req.getConnection((err, conn) => {
-        conn.query('INSERT INTO users SET ?',
-            { userName, passwordUs, fullNameUS, emailUser, credit },
-            async (error, results) => {
-                if (error) {
-                    console.log(error);
-                } else {
-                    //res.send("ALTA EXITOSA");
-                    req.session.loggedIn = true; // inicia sesion 
-                    req.session.name = userName;
-                    res.render('registro', {
-                        alert: true,
-                        alertTitle: "Registro de Cuenta Exitosa",
-                        alertMessage: "BIENVENIDO!!!",
-                        alertIcon: "success",
-                        showConfirmButton: false,// boton de confirmacion 
-                        timer: 2000,
-                        ruta: ''
-                    })
-                }
-            });
+    req.getConnection(async (error, connection) => {
+        const query = util.promisify(connection.query).bind(connection);
+        try {
+            // find the nameUser in database
+            const findUser = await query(`SELECT * FROM users WHERE userName = '${userName}'`);
+            // the nameUser exist
+            if (findUser.userName == userName) {
+                console.log('EXISTE UNA CUENTA');
+                res.render('registro', { // params 
+                    alert: true,
+                    alertTitle: "NOMBRE DE USUARIO EXISTENTE",
+                    alertMessage: "Selecciona otro nombre de usuario",
+                    alertIcon: "alert",
+                    showConfirmButton: false,// boton de confirmacion 
+                    timer: 1500,
+                    ruta: 'registro'
+                })
+            } else { // the nameUser not exist
+                await query('INSERT INTO users SET ?',
+                    { userName, passwordUs, fullNameUS, emailUser, credit });
+                req.session.loggedIn = true; // init session
+                req.session.name = userName;
+                res.render('registro', { // render the templete 'registro' and pass params
+                    alert: true,
+                    alertTitle: "Registro de Cuenta Exitosa",
+                    alertMessage: "BIENVENIDO!!!",
+                    alertIcon: "success",
+                    showConfirmButton: false,// button to confirmation 
+                    timer: 1500,
+                    ruta: ''
+                });
+            }
+        } catch (error) {
+            res.json(error);
+        }
     });
 };
 
 controller.auth = async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
-    console.log(Boolean(username));
-    console.log(Boolean(password));
-    if (Boolean(username) && Boolean(password)) {
-        //console.log('Buscando usuario');
-        req.getConnection((err, conn) => {
-            //console.log('Buscando usuario ', username);
-            conn.query('SELECT * FROM users WHERE userName = ?', [username], async (error, results) => {
-                console.log("RESULTADOS OBTENIDOS: ", results[0].passwordUs);
-                if ((await bcrypt.compare(password, results[0].passwordUs))) {
-                    res.render('registro', {
-                        alert: true,
-                        alertTitle: "Error",
-                        alertMessage: "Usuario y/o contaseña incorrectas",
-                        alertIcon: "error",
-                        showConfirmButton: true,// button confirm
-                        timer: 2000,
-                        ruta: '' // redirect after alert
-                    });
-                } else {
-                    req.session.loggedIn = true; // variable de sesion
-                    req.session.name = results[0].userName;
+    req.getConnection( async (err, conn) => {
+        if (err) throw err; // error with the connection 
+        console.log('Buscando usuario ', username);
+        const query = util.promisify(conn.query).bind(conn);
+        try {
+            const results = await query(`SELECT * FROM users WHERE userName = '${username}'`);
+            console.log(results);
+            console.log(results[0].passwordUs);
+
+            if (results.length == 0){ // not user
+                res.render('registro', {
+                    alert: true,
+                    alertTitle: "Error",
+                    alertMessage: "Usuario y/o contaseña incorrectas",
+                    alertIcon: "error",
+                    showConfirmButton: true,// button confirm
+                    timer: 2000,
+                    ruta: 'registro' // redirect after alert
+                });
+            } else { // user exists - check the password
+                if ((await bcryptjs.compare(password, results[0].passwordUs))){
+                    req.session.loggedIn = true; // session variable 
+                    req.session.name = results[0].userName; // set name session 
                     res.render('registro', {
                         alert: true,
                         alertTitle: "Conexion Exitosa",
@@ -463,21 +490,12 @@ controller.auth = async (req, res) => {
                         timer: 2000,
                         ruta: ''
                     })
-                } // end else
-            }) // end conn.query
-        }); // end getConnection
-    } else {
-        console.log('No inserto datos');
-        res.render('registro', {
-            alert: true,
-            alertTitle: "Advertencia",
-            alertMessage: "INGRESA DATOS DE USUARIO Y CONTRASEÑA",
-            alertIcon: "error",
-            showConfirmButton: false,// boton de confirmacion 
-            timer: 1500,
-            ruta: 'registro'
-        });
-    }
+                }
+            }
+        } catch (error) {
+            res.json(error);
+        }
+    }); // end getConnection
 }; // end controller.auth
 
 
@@ -491,9 +509,9 @@ controller.purchase = async (req, res) => {
     timePurchase, + 
     fileTicket +
     */
-    console.log(req.params, req.session.name); // { origenSelect: '___', destinyPlace: '___' }
+    console.log(req.body, req.params, req.session.name); // { origenSelect: '___', destinyPlace: '___' }
 
-    if (req.session.loggedIn) { // SE TIENE SESION ACTIVA 
+    if (req.session.loggedIn) { // active session
         req.getConnection(async (err, conn) => {
             const query = util.promisify(conn.query).bind(conn);
             try {
@@ -502,10 +520,12 @@ controller.purchase = async (req, res) => {
                     startingPlace = '${req.params.origenSelect}' AND destinyPlace = '${req.params.destinyPlace}';`);
                 console.log(user, travel);
 
-                // obtenemos fecha y hora del sistema
+                // get date and hour our sistem
                 var hoy = new Date();
                 var fecha = hoy.getFullYear() + '-' + (hoy.getMonth() + 1) + '-' + hoy.getDate();
                 var hora = hoy.getHours() + ':' + hoy.getMinutes() + ':' + hoy.getSeconds();
+
+                // insert data of purchades tickest in table 
                 await conn.query(`INSERT INTO purchasedTickets (
                     idUser,
                     idTravelRoute,
@@ -523,7 +543,7 @@ controller.purchase = async (req, res) => {
                     '${hora}',
                     '${req.session.name}_${fecha}.txt');`);
 
-                // mostramos el boleto comprdo en la tabla de boletos
+                // show ticket purchased in table of account 
                 res.render('index', {
                     login: true,
                     name: req.session.name,
@@ -532,14 +552,14 @@ controller.purchase = async (req, res) => {
                     alertMessage: "Gracias por tu compra,",
                     alertIcon: "success",
                     timer: 6000,
-                    showConfirmButton: false,// boton de confirmacion 
+                    showConfirmButton: false,
                     ruta: 'account'
                 });
             } catch (error) {
                 res.json(error);
             }
         })
-    } else { // NO SE TIENE SESION ACTIVA 
+    } else { // session inactive  
         res.render('index', {
             login: true,
             name: req.session.name,
@@ -548,13 +568,15 @@ controller.purchase = async (req, res) => {
             alertMessage: "redirigiendo a inicio de sesion",
             alertIcon: "erro",
             timer: 3000,
-            showConfirmButton: false,// boton de confirmacion 
+            showConfirmButton: false,
             ruta: 'registro'
         });
     }
-
-
 }
+
+
+
+
 
 
 module.exports = controller;

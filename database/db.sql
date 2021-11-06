@@ -5,7 +5,7 @@ USE database_BAB;
 CREATE TABLE users(
     idUser      INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     userName    VARCHAR(36) NOT NULL,
-    passwordUs  VARCHAR(36) NOT NULL,
+    passwordUs  VARCHAR(72) NOT NULL,
     fullNameUs  VARCHAR(72) NOT NULL,
     emailUser   VARCHAR(99) NOT NULL,
     dateOfBirth DATE NOT NULL,
@@ -25,7 +25,7 @@ mysql> DESCRIBE users;
 +-------------+--------------+------+-----+---------+----------------+
 | idUser      | int unsigned | NO   | PRI | NULL    | auto_increment |
 | userName    | varchar(36)  | NO   |     | NULL    |                |
-| passwordUs  | varchar(36)  | NO   |     | NULL    |                |
+| passwordUs  | varchar(72)  | NO   |     | NULL    |                |
 | fullNameUs  | varchar(72)  | NO   |     | NULL    |                |
 | emailUser   | varchar(99)  | NO   |     | NULL    |                |
 | credit      | double       | NO   |     | NULL    |                |
@@ -102,7 +102,7 @@ SHOW TABLES;
 
 -- 
 ALTER TABLE users MODIFY email TEXT(30) NOT NULL;
-ALTER TABLE 
+ALTER TABLE users MODIFY passwordUs VARCHAR(72) NOT NULL; 
 ALTER TABLE rutas ADD PRIMARY KEY (id);
 ALTER TABLE rutas MODIFY id INT(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT = 1;
 

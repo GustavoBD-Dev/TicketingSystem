@@ -213,3 +213,46 @@
     </div>
 </body>
 </html> 
+
+
+
+
+
+
+<tbody>
+    <% if (data) { %>
+        <% for (var i=0; i < data.length; i++) {%>
+            <tr>
+                <td>
+                    <%= (i + 1) %>
+                </td>
+                <td>
+                    <%= data[i].idTravelRoute %>
+                </td>
+                <td>
+                    <%= data[i].startingPlace %>
+                </td>
+                <td>
+                    <%= data[i].destinyPlace %>
+                </td>
+                <td>
+                    <%= data[i].dateTravel %>
+                </td>
+                <td>
+                    <%= data[i].hourTravel %>
+                </td>
+                <td>
+                    <%= data[i].priceTravel %>
+                </td>
+                <td>
+                    <%= data[i].availablePlaces %>
+                </td>
+                <td>
+                    <!-- eliminamos los archivos pasando l id de la base  -->
+                    <a href="" class="btn btn-danger">ELIMINAR</a>
+                    <!-- <a href="" class="btn btn-info">ACTUALIZAR</a> -->
+                </td>
+            </tr>
+            <% } %>
+                <% } %>
+</tbody>
