@@ -78,8 +78,8 @@
 					</span>
 				</div>
 			</div>
-			<div id="edd_checkout_wrap" class="col-md-8 col-md-offset-1">
-				<form id="edd_checkout_cart_form" method="post" action="/purchase/<%= data[0].startingPlace %>-<%= data[0].destinyPlace %>">
+			<div id="edd_checkout_wrap" class="col-md-12">
+				<form id="edd_checkout_cart_form" method="post" action="">
 					<div id="edd_checkout_cart_wrap">
 						<table id="edd_checkout_cart" class="ajaxed">
 							<thead>
@@ -88,7 +88,10 @@
 										VIAJE
 									</th>
 									<th class="edd_cart_item_name">
-										FECHA/HORA
+										FECHA
+									</th>
+									<th class="edd_cart_item_name">
+										HORA
 									</th>
 									<th class="edd_cart_item_price">
 										PRECIO
@@ -109,14 +112,17 @@
 								<tr class="edd_cart_item" id="edd_cart_item_0_25" data-download-id="25">
 									<td class="edd_cart_item_name">
 										<span class="edd_cart_item_image">
-											<%= data[0].startingPlace %> - <%= data[0].destinyPlace %>
+											<input type="text" value="<%= data[0].startingPlace %> - <%= data[0].destinyPlace %>" disabled>
 										</span>
 									</td>
 									<td>
-										<%= data[0].dateTravel %> / <%= data[0].hourTravel %>
+										<input name="dateSelect" type="text" value="<%= dateSelect %> " disabled>
+									</td>
+									<td>
+										<input name="hourSelect" type="text" value="<%= hourSelect %>" disabled>		
 									</td>
 									<td class="edd_cart_item_price" id="price_Travel">
-										<%= data[0].priceTravel %>
+										<input name="priceTravel" type="text"  value="$<%= data[0].priceTravel %>" disabled>
 									</td>
 									<!-- <td class="edd_cart_actions">
 										<input class="edd_price" type="number" id="cantidad" min="1" max="45" value="1"
@@ -128,7 +134,9 @@
 									</td> -->
 									<td class="edd_cart_actions">
 										<!-- <a class="edd_cart_remove_item_btn" href="#">Eliminar</a> -->
-										<input type="submit" class="edd-submit button" id="edd-purchase-button" name="edd-purchase" value="Comprar">
+										<a class="edd_cart_remove_item_btn" href="/purchase/<%= data[0].startingPlace %>/<%= data[0].destinyPlace %>/<%= dateSelect %>/<%= hourSelect %>">COMPRAR</a>
+										
+										<!-- <input type="submit" class="edd-submit button" id="edd-purchase-button" name="edd-purchase" value="Comprar"> -->
 									</td>
 								</tr>
 							</tbody>

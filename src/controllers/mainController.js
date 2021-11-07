@@ -57,7 +57,7 @@ controller.dataRoutes = async (request, response) => { // get data of table trav
 }
 
 controller.dataTickets = async (request, response) => { // get data of table purchasedTickets
-    request.getConnection( async (err, conn) => {
+    request.getConnection(async (err, conn) => {
         if (err) throw err;
         const query = util.promisify(conn.query).bind(conn);
         try {
@@ -184,10 +184,12 @@ controller.camiones = (req, res) => {// render a camiones.ejs
     //res.render('camiones');
 };
 
-controller.pay = (req, res) => {
+controller.pay = async (req, res) => {
     // get start and detiny of the route 
     const start = req.params.origenSelect;
     const ended = req.params.destinyPlace;
+    const dateSelect = req.body.dateSelect;
+    const hourSelect = req.body.hourSelect;
     console.log('HACER COMPRA CON ESTE DATO', start, ended);;
     // get price of route
     req.getConnection((error, connection) => {
@@ -202,13 +204,17 @@ controller.pay = (req, res) => {
                     res.render('pagos', { // send the data 
                         login: true,
                         name: req.session.name,
-                        data: infoTravel
+                        data: infoTravel,
+                        dateSelect: dateSelect,
+                        hourSelect: hourSelect
                     });
                 } else { // session inactive
                     res.render('pagos', {
                         login: false,
                         name: 'USUARIO',
-                        data: infoTravel // sen data
+                        data: infoTravel, // sen data
+                        hourSelect: hourSelect,
+                        dateSelect: dateSelect
                     });
                 }
             }); // end getConnection
@@ -250,24 +256,40 @@ controller.destinations = (req, res) => { // get the destinations availables
 
 
 
-/////////////  CONSULTAS SQL TO USERS  /////////////
-
-controller.save = (req, res) => {
-    //console.log(req.body);
-    const data = req.body;
-    req.getConnection((err, conn) => {
-        conn.query('INSERT INTO users SET ?', [data], (err, rows) => {
-            if (err) {
-                console.error('error connecting: ' + err.stack);
-                return;
+controller.dataTimeTravel = (req, res) => {
+    // params data
+    const start = req.params.origenSelect;
+    const ended = req.params.destinyPlace;
+    req.getConnection(async (err, conn) => {
+        if (err) throw err;
+        const query = util.promisify(conn.query).bind(conn);
+        try {
+            const data = await query(`SELECT * FROM travelRoutes WHERE 
+            startingPlace = '${req.params.origenSelect}' AND destinyPlace = '${req.params.destinyPlace}';`);
+            // 01:00:00 range exit
+            var data_split = data[0].hourTravel.split(':');
+            console.log('data_split - ', data_split);
+            var interval_hour = parseInt(data_split[0], 10);
+            console.log('interval_hour - ', interval_hour);
+            var array = []; // contains hours avaliables with interval
+            var hour = 0; // init hour - day contains 24 hours, init in 0
+            while (hour < 24) {
+                hour += interval_hour; // add range hour 
+                array.push(hour);
             }
-            //console.log(data);
-            //console.log(rows);
-            res.redirect('/');// redirecciona a la ruta inicial del servidor
-            //res.send('works');
-        });
-    });
-};
+            console.log(array);
+            res.render('users', {
+                start: start,
+                ended: ended,
+                hours: array
+            });
+
+        } catch (error) {
+            res.json(error);
+        }
+
+    })
+}
 
 controller.edit = (req, res) => {
     const { id } = req.params;
@@ -312,11 +334,11 @@ controller.getTicket = async (req, res) => { // ticket generation, pass folio pu
             const dataUser = await query(`SELECT * FROM users WHERE userName = '${req.session.name}'`)
             console.log(req.session.name);
             console.log(dataUser);
-            
+
             // instance of PDFDocument
             const doc = new PDFDocument({
                 size: 'A4',
-                margins: {top: 20, left: 10, rigth: 10, bottom:20},
+                margins: { top: 20, left: 10, rigth: 10, bottom: 20 },
                 bufferPages: true,
             });
             // Passing size to the addPage function
@@ -332,7 +354,7 @@ controller.getTicket = async (req, res) => { // ticket generation, pass folio pu
             doc.on('data', (data) => { stream.write(data) });
             // end the head
             doc.on('end', () => { stream.end() });
-            
+
             // content before the table  
             doc.setDocumentHeader({ // setDocumentHeader is setting 10% of page 
                 // increade head
@@ -369,7 +391,7 @@ controller.getTicket = async (req, res) => { // ticket generation, pass folio pu
                     precio: '$' + dataTicket[0].priceTravel
                 }
             ];
-            
+
             // receive the columns of table 
             doc.addTable([
                 { key: 'id', label: 'FOLIO', align: 'left' },
@@ -396,7 +418,6 @@ controller.getTicket = async (req, res) => { // ticket generation, pass folio pu
             res.json(error);
         }
     }); // end connection
-    console.log(dataTicket);
 }
 
 controller.delete = (req, res) => { // delete ticket with folio 
@@ -490,7 +511,7 @@ controller.userRegister = async (req, res) => { // register new user
 controller.auth = async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
-    req.getConnection( async (err, conn) => {
+    req.getConnection(async (err, conn) => {
         if (err) throw err; // error with the connection 
         console.log('Buscando usuario ', username);
         const query = util.promisify(conn.query).bind(conn);
@@ -499,7 +520,7 @@ controller.auth = async (req, res) => {
             console.log(results);
             console.log(results[0].passwordUs);
 
-            if (results.length == 0){ // not user
+            if (results.length == 0) { // not user
                 res.render('registro', {
                     alert: true,
                     alertTitle: "Error",
@@ -510,7 +531,7 @@ controller.auth = async (req, res) => {
                     ruta: 'registro' // redirect after alert
                 });
             } else { // user exists - check the password
-                if ((await bcryptjs.compare(password, results[0].passwordUs))){
+                if ((await bcryptjs.compare(password, results[0].passwordUs))) {
                     req.session.loggedIn = true; // session variable 
                     req.session.name = results[0].userName; // set name session 
                     res.render('registro', {
@@ -551,9 +572,15 @@ controller.purchase = async (req, res) => {
     timePurchase, + 
     fileTicket +
     */
-    console.log(req.body, req.params, req.session.name); // { origenSelect: '___', destinyPlace: '___' }
+    console.log('COMPRANDO dia', req.params.date);
+    console.log('COMPRANDO hora', req.params.hour);
+    console.log('COMPRANDO origen', req.params.origenSelect);
+    console.log('COMPRANDO detino', req.params.destinyPlace);
+    //console.log(req.body, req.params, req.session.name); // { origenSelect: '___', destinyPlace: '___' }
+    //console.log(req.body.dateSelect, req.body.hourSelect, req.body.priceTravel); // { origenSelect: '___', destinyPlace: '___' }
 
     if (req.session.loggedIn) { // active session
+        console.log('SESION ACTIVA');
         req.getConnection(async (err, conn) => {
             const query = util.promisify(conn.query).bind(conn);
             try {
@@ -563,9 +590,10 @@ controller.purchase = async (req, res) => {
                 console.log(user, travel);
 
                 // get date and hour our sistem
-                var hoy = new Date();
+                const f = new Date(req.params.date);
+                /* var hoy = new Date();
                 var fecha = hoy.getFullYear() + '-' + (hoy.getMonth() + 1) + '-' + hoy.getDate();
-                var hora = hoy.getHours() + ':' + hoy.getMinutes() + ':' + hoy.getSeconds();
+                var hora = hoy.getHours() + ':' + hoy.getMinutes() + ':' + hoy.getSeconds(); */
 
                 // insert data of purchades tickest in table 
                 await conn.query(`INSERT INTO purchasedTickets (
@@ -581,9 +609,9 @@ controller.purchase = async (req, res) => {
                     ${travel[0].idTravelRoute},
                     ${1},
                     ${travel[0].priceTravel},
-                    '${fecha}',
-                    '${hora}',
-                    '${req.session.name}_${fecha}.txt');`);
+                    '${req.params.date}',
+                    '${req.params.hour}',
+                    '${req.session.name}_${req.params.date}.txt');`);
 
                 // show ticket purchased in table of account 
                 res.render('index', {
@@ -624,11 +652,11 @@ controller.getPDFRoutes = (req, res) => {
         try {
             //res.send(JSON.stringify(await query('SELECT * FROM travelRoutes')));
             const data = await query('SELECT * FROM travelRoutes');
-           
+
             // create a document 
             const doc = new PDFDocument({
                 size: 'A4',
-                margins: {top: 20, left: 10, rigth: 10, bottom:20},
+                margins: { top: 20, left: 10, rigth: 10, bottom: 20 },
                 bufferPages: true,
             });
 
@@ -659,29 +687,29 @@ controller.getPDFRoutes = (req, res) => {
             // add table
             doc.addTable(
                 [
-                    {key:   'idTravelRoute',    label:  'ID',       align: 'center'},
-                    {key:   'startingPlace',    label:  'INICIO',   align: 'center'},
-                    {key:   'destinyPlace',     label:  'DESTINO',  align: 'center'},
-                    {key:   'dateTravel',       label:  'FECHA',    align: 'center'},
-                    {key:   'hourTravel',       label:  'HORA',     align: 'center'},
-                    {key:   'priceTravel',      label:  'PRECIO',   align: 'center'},
-                    {key:   'availablePlaces',  label:  'LUGARES',  align: 'center'},
+                    { key: 'idTravelRoute', label: 'ID', align: 'center' },
+                    { key: 'startingPlace', label: 'INICIO', align: 'center' },
+                    { key: 'destinyPlace', label: 'DESTINO', align: 'center' },
+                    { key: 'dateTravel', label: 'FECHA', align: 'center' },
+                    { key: 'hourTravel', label: 'HORA', align: 'center' },
+                    { key: 'priceTravel', label: 'PRECIO', align: 'center' },
+                    { key: 'availablePlaces', label: 'LUGARES', align: 'center' },
                 ],
                 data, { // 
-                    border: null,   // whitout border
-                    width: "auto", // any body
-                    striped: true,
-                    stripedColors: ["#f6f6f6", "#d6c4dd"], // rows colors 
-                    cellsPadding: 10,
-                    marginLeft: 45,
-                    marginRight: 45,
-                    headAlign: 'center' // text aling 
-                });
-                
-                // render tables
-                doc.render();
-                doc.end();
-          
+                border: null,   // whitout border
+                width: "auto", // any body
+                striped: true,
+                stripedColors: ["#f6f6f6", "#d6c4dd"], // rows colors 
+                cellsPadding: 10,
+                marginLeft: 45,
+                marginRight: 45,
+                headAlign: 'center' // text aling 
+            });
+
+            // render tables
+            doc.render();
+            doc.end();
+
         } catch (error) {
             res.json(error.stack);
             return;
@@ -696,11 +724,21 @@ controller.getPDFTickets = (req, res) => {
         try {
             //res.send(JSON.stringify(await query('SELECT * FROM travelRoutes')));
             const data = await query('SELECT * FROM purchasedTickets');
-           
+            
+            console.log(data[0].datePurchase.getFullYear());
+            
+            data.forEach(element => {
+                var newDate = element.datePurchase.getFullYear() + '-' 
+                    + element.datePurchase.getMonth() + '-' 
+                    + element.datePurchase.getDate();
+                element.datePurchase = newDate;
+                console.log(element.datePurchase);
+            });
+
             // create a document 
             const doc = new PDFDocument({
                 size: 'A4',
-                margins: {top: 20, left: 10, rigth: 10, bottom:20},
+                margins: { top: 20, left: 10, rigth: 10, bottom: 20 },
                 bufferPages: true,
             });
 
@@ -730,29 +768,29 @@ controller.getPDFTickets = (req, res) => {
             // add table
             doc.addTable(
                 [
-                    {key:   'folio',        label:  'FOLIO',    align: 'center'},
-                    {key:   'idUser',       label:  'USUARIO',  align: 'center'},
-                    {key:   'idTravelRoute',label:  'RUTA',     align: 'center'},
-                    {key:   'numberTickets',label:  'BOLETOS',  align: 'center'},
-                    {key:   'fullPayment',  label:  'TOTAL',    align: 'center'},
-                    {key:   'datePurchase', label:  'FECHA',    align: 'center'},
-                    {key:   'timePurchase', label:  'HORA',     align: 'center'},
+                    { key: 'folio', label: 'FOLIO', align: 'center' },
+                    { key: 'idUser', label: 'USUARIO', align: 'center' },
+                    { key: 'idTravelRoute', label: 'RUTA', align: 'center' },
+                    { key: 'numberTickets', label: 'BOLETOS', align: 'center' },
+                    { key: 'fullPayment', label: 'TOTAL', align: 'center' },
+                    { key: 'datePurchase', label: 'FECHA', align: 'center' },
+                    { key: 'timePurchase', label: 'HORA', align: 'center' },
                 ],
                 data, { // 
-                    border: null,   // whitout border
-                    width: "auto", // any body
-                    striped: true,
-                    stripedColors: ["#f6f6f6", "#d6c4dd"], // rows colors 
-                    cellsPadding: 10,
-                    marginLeft: 45,
-                    marginRight: 45,
-                    headAlign: 'center' // text aling 
-                });
-                
-                // render tables
-                doc.render();
-                doc.end();
-          
+                border: null,   // whitout border
+                width: "auto", // any body
+                striped: true,
+                stripedColors: ["#f6f6f6", "#d6c4dd"], // rows colors 
+                cellsPadding: 10,
+                marginLeft: 45,
+                marginRight: 45,
+                headAlign: 'center' // text aling 
+            });
+
+            // render tables
+            doc.render();
+            doc.end();
+
         } catch (error) {
             res.json(error.stack);
             return;
@@ -763,6 +801,8 @@ controller.getPDFTickets = (req, res) => {
 controller.addRoute = (req, res) => {
     //console.log(req.body);
     const data = req.body;
+    console.log(data);
+    return;
     req.getConnection((err, conn) => {
         conn.query('INSERT INTO travelRoutes SET ?', [data], (err, rows) => {
             if (err) {

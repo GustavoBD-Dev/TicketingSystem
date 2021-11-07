@@ -16,14 +16,14 @@ router.get('/logout', mainController.logout);
 
 
 // Sentences to users
-router.post('/add', mainController.save);
+router.get('/dataTimeTravel/:origenSelect-:destinyPlace', mainController.dataTimeTravel);
 router.get('/delete/:folio', mainController.delete);// revecive in params the folio 
 router.get('/update/:id', mainController.edit); // receive in params the id 
 router.post('/update/:id', mainController.update); // receive in params the id
 router.post('/userRegister', mainController.userRegister);
 router.post('/auth', mainController.auth);
 // receive in params the origen select and destiny place
-router.post('/purchase/:origenSelect-:destinyPlace', mainController.purchase); 
+router.get('/purchase/:origenSelect/:destinyPlace/:date/:hour', mainController.purchase); 
 // receive in params the folio to print ticket
 router.get('/get-ticket/:folio', mainController.getTicket);
 // receive in params the origin to find the destiny avaliables for this 
@@ -32,7 +32,8 @@ router.get('/account', mainController.account);
 // redirect to nav bar 
 router.get('/origenes', mainController.origenes);
 router.get('/camiones', mainController.camiones);
-router.get('/pago/:origenSelect-:destinyPlace', mainController.pay);
+//router.get('/pago/:origenSelect-:destinyPlace', mainController.pay);
+router.post('/pago/:origenSelect-:destinyPlace', mainController.pay);
 router.get('/registro', mainController.registro);
 // generate the view to admin
 router.get('/admin', mainController.admin);
