@@ -6,7 +6,7 @@ const morgan = require('morgan');
 const mysql = require('mysql');
 const myConnection = require('express-myconnection');
 const session = require('express-session');
-
+require('dotenv').config();
 // importing routes defined in main.js
 const userRouters = require('./routes/main');
 
@@ -26,7 +26,7 @@ const { request } = require('http');
 
 // settings - variables
 // app.set('<name_variable>', value);
-app.set('port', process.env.PORT || 3000); // set the number port
+app.set('port', process.env.PORT); // set the number port
 // get the value of variable - app.get('port')
 app.set('view engine', 'ejs'); // ejs how engine templates
 app.set('views', path.join(__dirname, 'views')); // __dirname ruta del archivo
@@ -42,10 +42,10 @@ app.set(express.static(path.join(__dirname, 'public')));
 app.use(logger); */ // this middleware execute the function logger before the executed any routes
 app.use(morgan('dev')); // mostrar mensaje por consola GET / 404 7.236 ms - 139
 app.use(myConnection(mysql, { // conexion a la base de datos
-    host: "localhost",
-    user: "root",
-    password: "MSD9BN45",
-    database: "database_BAB",
+    host: process.env.HOST,
+    user: process.env.USER,
+    password: process.env.PASSWORD,
+    database: process.env.DATABASE,
     port: 3306
 }, 'single'));
 // method that allows to understand the form data

@@ -134,7 +134,8 @@
 									</td> -->
 									<td class="edd_cart_actions">
 										<!-- <a class="edd_cart_remove_item_btn" href="#">Eliminar</a> -->
-										<a class="edd_cart_remove_item_btn" href="/purchase/<%= data[0].startingPlace %>/<%= data[0].destinyPlace %>/<%= dateSelect %>/<%= hourSelect %>">COMPRAR</a>
+										<!-- <a class="edd_cart_remove_item_btn" href="/purchase/<%= data[0].startingPlace %>/<%= data[0].destinyPlace %>/<%= dateSelect %>/<%= hourSelect %>">COMPRAR</a>-->		
+										<a class="edd_cart_remove_item_btn" href="/stripe?start=<%= data[0].startingPlace %>&end=<%= data[0].destinyPlace %>&date=<%= dateSelect %>&hour=<%= hourSelect %>&price=<%= data[0].priceTravel %>">COMPRAR</a>
 										
 										<!-- <input type="submit" class="edd-submit button" id="edd-purchase-button" name="edd-purchase" value="Comprar"> -->
 									</td>

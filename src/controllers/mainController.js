@@ -9,8 +9,77 @@ const { error } = require("console");
 const { request } = require("http");
 const { response } = require("express");
 //const fs = require('fs'); // module de nodejs
+require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const controller = {};
+
+controller.stripe = async (req, res) => {
+    if (req.session.loggedIn) {
+        // get query string
+        const {
+            start = '',
+            end = '',
+            date = '',
+            hour = '',
+            price = ''
+        } = req.query;
+
+        console.log('start: ', start, ' end: ', end, ' date: ', date, ' hour: ', hour, ' price: ', price)
+        console.log('************ PROCESO STRIPE *************');
+        console.log('variable price -> ', typeof price);
+
+        // 1 - set ID of prices 
+        const productID500 = 'price_1Jt4NfIs3eGPqVAxCQuv0oQb'; // 500
+        const productID250 = 'price_1Jt4NfIs3eGPqVAx4yhTKuEO'; // 250
+        const productID150 = 'price_1Jt4NeIs3eGPqVAxduXlcVhy'; // 150
+        const productID = '';
+
+        if (Number(price) == 500) {
+            productID = productID500;
+        } else if (Number(price) == 250) {
+            productID = productID250;
+        } else if (Number(price) == 150) {
+            productID = productID150;
+        } else {
+            res.json(productID);
+        }
+
+        // 2 - generate session 
+        const session = await stripe.checkout.sessions.create({
+            // line products
+            line_items: [
+                { // products -> tickets
+                    price: productID,
+                    quantity: 1
+                }
+            ],
+            payment_method_types: [ // method pay
+                "card",
+                "oxxo"
+            ],
+            mode: 'payment',
+            //success_url: `${YOUR_DOMAIN}/success.html`,
+            success_url: `http://localhost:3000/purchase?start=${start}&end=${end}&date=${date}&hour=${hour}&price=${price}`,
+            cancel_url: `http://localhost:3000/origenes`,
+        });
+        //console.log(session.url);
+        res.redirect(303, session.url);
+    } else { // session inactive  
+        res.render('index', {
+            login: true,
+            name: req.session.name,
+            alert: true,
+            alertTitle: "PARA COMPRAR NECESITA UNA CUENTA",
+            alertMessage: "redirigiendo a inicio de sesion",
+            alertIcon: "info",
+            timer: 3000,
+            showConfirmButton: false,
+            ruta: 'registro'
+        });
+    }
+}
+
 
 controller.list = (req, res) => {
     // if init session, we can get session name 
@@ -28,19 +97,32 @@ controller.list = (req, res) => {
 };
 
 controller.admin = (request, response) => {
+    const statusAdmin = request.query.status;
     request.getConnection(async (error, connection) => {
-        /* if (error) throw error; // error with the connection 
+        if (error) throw error; // error with the connection 
         const query = util.promisify(connection.query).bind(connection);
         try {
-            const rows = await query('SELECT * FROM travelRoutes');
+            const data = await query('SELECT DISTINCT priceTravel FROM travelRoutes');
+            console.log(data);
+            if (statusAdmin) { // new regiter 
+                response.render('admin', {
+                    dataRows : data,
+                    alert: true,
+                    alertTitle: "REGISTRO EXITOSO!!",
+                    alertMessage: "se ha agregado una nueva ruta",
+                    alertIcon: "info",
+                    timer: 3000,
+                    showConfirmButton: false,
+                    ruta: 'admin'
+                })
+            }
             response.render('admin', {
-                data: rows
-            })
+                dataRows: data
+            });
         } catch (error) {
             res.json(error);
-            return;
-        } */
-        response.render('admin');
+            //return;
+        }
     });
 }
 
@@ -64,11 +146,11 @@ controller.dataTickets = async (request, response) => { // get data of table pur
         try {
             const data = await query('SELECT * FROM purchasedTickets');
             data.forEach(element => {
-                var newDate = element.datePurchase.getFullYear() + '-' 
-                    + element.datePurchase.getMonth() + '-' 
+                var newDate = element.datePurchase.getFullYear() + '-'
+                    + element.datePurchase.getMonth() + '-'
                     + element.datePurchase.getDate();
                 element.datePurchase = newDate;
-                console.log(element.datePurchase);
+                //console.log(element.datePurchase);
             });
             response.send(JSON.stringify(data));
         } catch (error) {
@@ -591,31 +673,24 @@ controller.purchase = async (req, res) => {
     timePurchase, + 
     fileTicket +
     */
-    console.log('COMPRANDO dia', req.params.date);
-    console.log('COMPRANDO hora', req.params.hour);
-    console.log('COMPRANDO origen', req.params.origenSelect);
-    console.log('COMPRANDO detino', req.params.destinyPlace);
+    console.log('COMPRANDO dia', req.query.date);
+    console.log('COMPRANDO hora', req.query.hour);
+    console.log('COMPRANDO origen', req.query.start);
+    console.log('COMPRANDO detino', req.query.end);
+    console.log('COMPRANDO precio', req.query.price);
     //console.log(req.body, req.params, req.session.name); // { origenSelect: '___', destinyPlace: '___' }
     //console.log(req.body.dateSelect, req.body.hourSelect, req.body.priceTravel); // { origenSelect: '___', destinyPlace: '___' }
-
-    if (req.session.loggedIn) { // active session
-        console.log('SESION ACTIVA');
-        req.getConnection(async (err, conn) => {
-            const query = util.promisify(conn.query).bind(conn);
-            try {
-                const user = await query('SELECT * FROM users WHERE userName = ?', [req.session.name]);
-                const travel = await query(`SELECT * FROM travelRoutes WHERE 
-                    startingPlace = '${req.params.origenSelect}' AND destinyPlace = '${req.params.destinyPlace}';`);
-                console.log(user, travel);
-
-                // get date and hour our sistem
-                const f = new Date(req.params.date);
-                /* var hoy = new Date();
-                var fecha = hoy.getFullYear() + '-' + (hoy.getMonth() + 1) + '-' + hoy.getDate();
-                var hora = hoy.getHours() + ':' + hoy.getMinutes() + ':' + hoy.getSeconds(); */
-
-                // insert data of purchades tickest in table 
-                await conn.query(`INSERT INTO purchasedTickets (
+    console.log('SESION ACTIVA');
+    req.getConnection(async (err, conn) => {
+        if (err) throw err;
+        const query = util.promisify(conn.query).bind(conn);
+        try {
+            const user = await query(`SELECT * FROM users WHERE userName ='${req.session.name}'`);
+            const travel = await query(`SELECT * FROM travelRoutes WHERE 
+                    startingPlace = '${req.query.start}' AND destinyPlace = '${req.query.end}';`);
+            console.log(user, travel);
+            // insert data of purchades tickest in table 
+            await conn.query(`INSERT INTO purchasedTickets (
                     idUser,
                     idTravelRoute,
                     numberTickets,
@@ -628,39 +703,27 @@ controller.purchase = async (req, res) => {
                     ${travel[0].idTravelRoute},
                     ${1},
                     ${travel[0].priceTravel},
-                    '${req.params.date}',
-                    '${req.params.hour}',
-                    '${req.session.name}_${req.params.date}.txt');`);
+                    '${req.query.date}',
+                    '${req.query.hour}',
+                    '${req.session.name}_${req.query.date}.txt');`);
 
-                // show ticket purchased in table of account 
-                res.render('index', {
-                    login: true,
-                    name: req.session.name,
-                    alert: true,
-                    alertTitle: "COMPRA EXITOSA!!",
-                    alertMessage: "Gracias por tu compra,",
-                    alertIcon: "success",
-                    timer: 6000,
-                    showConfirmButton: false,
-                    ruta: 'account'
-                });
-            } catch (error) {
-                res.json(error);
-            }
-        })
-    } else { // session inactive  
-        res.render('index', {
-            login: true,
-            name: req.session.name,
-            alert: true,
-            alertTitle: "PARA COMPRAR NECESITA UNA CUENTA",
-            alertMessage: "redirigiendo a inicio de sesion",
-            alertIcon: "erro",
-            timer: 3000,
-            showConfirmButton: false,
-            ruta: 'registro'
-        });
-    }
+
+            // show ticket purchased in table of account 
+            res.render('index', {
+                login: true,
+                name: req.session.name,
+                alert: true,
+                alertTitle: "COMPRA EXITOSA!!",
+                alertMessage: "Gracias por tu compra,",
+                alertIcon: "success",
+                timer: 6000,
+                showConfirmButton: false,
+                ruta: 'account'
+            });
+        } catch (error) {
+            res.json(error);
+        }
+    })
 }
 
 
@@ -743,12 +806,12 @@ controller.getPDFTickets = (req, res) => {
         try {
             //res.send(JSON.stringify(await query('SELECT * FROM travelRoutes')));
             const data = await query('SELECT * FROM purchasedTickets');
-            
+
             console.log(data[0].datePurchase.getFullYear());
-            
+
             data.forEach(element => {
-                var newDate = element.datePurchase.getFullYear() + '-' 
-                    + element.datePurchase.getMonth() + '-' 
+                var newDate = element.datePurchase.getFullYear() + '-'
+                    + element.datePurchase.getMonth() + '-'
                     + element.datePurchase.getDate();
                 element.datePurchase = newDate;
                 //console.log(element.datePurchase);
@@ -828,15 +891,7 @@ controller.addRoute = (req, res) => {
                 console.error('error connecting: ' + err.stack);
                 return;
             }
-            res.render('admin', {
-                alert: true,
-                alertTitle: "REGISTRO EXITOSO",
-                alertMessage: "Se ha agregado una nueva ruta",
-                alertIcon: "succes",
-                timer: 1500,
-                showConfirmButton: false,
-                ruta: '/admin'
-            });
+            res.redirect('/admin?status=newRegister');
         });
     });
 }

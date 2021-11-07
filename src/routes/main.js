@@ -13,7 +13,7 @@ const mainController = require('../controllers/mainController');
 // call the function list of user controller
 router.get('/', mainController.list); 
 router.get('/logout', mainController.logout);
-
+router.get('/stripe', mainController.stripe);
 
 // Sentences to users
 router.get('/dataTimeTravel/:origenSelect-:destinyPlace', mainController.dataTimeTravel);
@@ -23,7 +23,7 @@ router.post('/update/:id', mainController.update); // receive in params the id
 router.post('/userRegister', mainController.userRegister);
 router.post('/auth', mainController.auth);
 // receive in params the origen select and destiny place
-router.get('/purchase/:origenSelect/:destinyPlace/:date/:hour', mainController.purchase); 
+router.get('/purchase', mainController.purchase); 
 // receive in params the folio to print ticket
 router.get('/get-ticket/:folio', mainController.getTicket);
 // receive in params the origin to find the destiny avaliables for this 
