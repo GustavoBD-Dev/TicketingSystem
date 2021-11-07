@@ -95,29 +95,35 @@
 
         <div id="addRoute" class="tabcontent">
             <br>
+            <div>
+                <strong class="card-title">AGREGAR NUEVA RUTA</strong>
+            </div>
+            <br>
             <div class="card">
                 <div class="card-body">
-                    <div>
-                        <strong class="card-title">AGREGAR NUEVA RUTA</strong>
-                    </div>
                     <form action="/addRoute" method="post">
                         <div class="form-group">
-                            <input type="text" name="startingPlace" placeholder="Inicio" class="form-control">
+                            <input type="text" name="startingPlace" placeholder="Inserte nombre del lugar de partida"
+                                class="form-control">
                         </div>
                         <div class="form-group">
-                            <input type="text" name="destinyPlace" placeholder="Destino" class="form-control">
+                            <input type="text" name="destinyPlace" placeholder="Inserte nombre del lugar destino "
+                                class="form-control">
                         </div>
                         <div class="form-group">
                             <input type="date" name="dateTravel" placeholder="Fecha aaaa-mm-dd" class="form-control">
                         </div>
                         <div class="form-group">
-                            <input type="time" name="hourTravel" placeholder="Hora hh:mm:ss" class="form-control">
+                            <input type="text" name="hourTravel" placeholder="Inserte intervalo de salida en hh:mm:ss"
+                                class="form-control">
                         </div>
                         <div class="form-group">
-                            <input type="number" name="priceTravel" placeholder="Precio" class="form-control">
+                            <input type="number" name="priceTravel" placeholder="Inserte precio del viaje"
+                                class="form-control">
                         </div>
                         <div class="form-group">
-                            <input type="number" name="availablePlaces" placeholder="Disponibles" class="form-control">
+                            <input type="number" name="availablePlaces"
+                                placeholder="Inserte numero de lugares Disponibles" class="form-control">
                         </div>
                         <br>
                         <div class="form-group">
@@ -191,8 +197,8 @@
                 <div class="row">
                     <form action="/getPDFRoutes">
                         <div>
-                            <button type="submit" class="btn btn-light"><strong>DESCARGAR REPORTE
-                                    RUTAS</strong></button>
+                            <button onclick="descarga()" type="submit" class="btn btn-light">
+                                <strong>DESCARGAR REPORTE RUTAS</strong></button>
                         </div>
                     </form>
                 </div>
@@ -201,8 +207,8 @@
                 <div class="row">
                     <form action="/getPDFTickets">
                         <div>
-                            <button type="submit" class="btn btn-light"><strong>DESCARGAR REPORTE
-                                    BOLETOS</strong></button>
+                            <button onclick="descarga()" type="submit" class="btn btn-light">
+                                <strong>DESCARGAR REPORTE BOLETOS</strong></button>
                         </div>
                     </form>
                 </div>
@@ -272,12 +278,12 @@
                 { data: 'fullPayment' },
                 { data: 'datePurchase' },
                 { data: 'timePurchase' },
-                {
+                /* {
                     data: null,
                     "render": function (data) {
                         return '<a onclick="confirmar(' + data.folio + ')" class="btn btn-danger">ELIMINAR</a>'
                     }
-                },
+                }, */
             ],// option to show rows 
             pageLength: 5,
             lengthMenu: [[5, 10, -1], [5, 10, 'TODOS']]
@@ -304,21 +310,31 @@
             }
         })
     }
+    function descarga() {
+        Swal.fire({
+            position: 'top-end',
+            icon: 'success',
+            title: 'Descargando reporte en archivo PDF',
+            showConfirmButton: false,
+            timer: 1500
+        })
+
+    }
 </script>
 
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-    <% if (typeof alert !="undefined" ) {%>
-        <script>
-            Swal.fire({
-                title: "<%= alertTitle %>",
-                text: "<%= alertMessage %>",
-                icon: "<%= alertIcon %>",
-                showConfirmButton: "<%= showConfirmButton %>",
-                timer: "<%= timer %>"
-            }).then(() => {
-                window.location = '/<%= ruta %>'
-            })
-        </script>
+<% if (typeof alert !="undefined" ) {%>
+    <script>
+        Swal.fire({
+            title: "<%= alertTitle %>",
+            text: "<%= alertMessage %>",
+            icon: "<%= alertIcon %>",
+            showConfirmButton: "<%= showConfirmButton %>",
+            timer: "<%= timer %>"
+        }).then(() => {
+            window.location = '/<%= ruta %>'
+        })
+    </script>
     <% } %>
 
 </html>

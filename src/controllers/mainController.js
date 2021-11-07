@@ -29,7 +29,7 @@ controller.list = (req, res) => {
 
 controller.admin = (request, response) => {
     request.getConnection(async (error, connection) => {
-        if (error) throw error; // error with the connection 
+        /* if (error) throw error; // error with the connection 
         const query = util.promisify(connection.query).bind(connection);
         try {
             const rows = await query('SELECT * FROM travelRoutes');
@@ -39,7 +39,8 @@ controller.admin = (request, response) => {
         } catch (error) {
             res.json(error);
             return;
-        }
+        } */
+        response.render('admin');
     });
 }
 
@@ -61,7 +62,15 @@ controller.dataTickets = async (request, response) => { // get data of table pur
         if (err) throw err;
         const query = util.promisify(conn.query).bind(conn);
         try {
-            response.send(JSON.stringify(await query('SELECT * FROM purchasedTickets')));
+            const data = await query('SELECT * FROM purchasedTickets');
+            data.forEach(element => {
+                var newDate = element.datePurchase.getFullYear() + '-' 
+                    + element.datePurchase.getMonth() + '-' 
+                    + element.datePurchase.getDate();
+                element.datePurchase = newDate;
+                console.log(element.datePurchase);
+            });
+            response.send(JSON.stringify(data));
         } catch (error) {
             res.json(error);
         }
@@ -428,11 +437,21 @@ controller.delete = (req, res) => { // delete ticket with folio
         if (err) throw err; // error with the connection 
         const query = util.promisify(conn.query).bind(conn);
         try {
-            // query to data ticket to delete
+            // query to data ticket delete
             //const ticketDelete = await query(`SELECT * FROM travelRoutes WHERE idTravelRoute = 
             //      (SELECT idTravelRoute FROM purchasedTickets WHERE folio = ${folio});`);
             const ticketDelete = await query(`SELECT * FROM travelRoutes WHERE idTravelRoute = 
             (SELECT idTravelRoute FROM purchasedTickets WHERE folio = ${folio});`);
+            // update credit in account user 
+            // get credit in account
+            const currentCredit = await query(`SELECT credit FROM users WHERE userName = '${req.session.name}'`);
+            // add the credit of ticket deleted in account 
+            // get price ticket deleted 
+            const newPrice = ticketDelete[0].priceTravel;
+            // add in account credit 
+            const credit = parseInt(currentCredit[0].credit) + parseInt(newPrice);
+            // update in database 
+            await query(`UPDATE users SET credit = ${credit} WHERE userName = '${req.session.name}'`)
             // delete ticket of table 
             await query(`DELETE FROM purchasedTickets WHERE folio = ${folio};`);
             // get total tickets updated of user 
@@ -732,7 +751,7 @@ controller.getPDFTickets = (req, res) => {
                     + element.datePurchase.getMonth() + '-' 
                     + element.datePurchase.getDate();
                 element.datePurchase = newDate;
-                console.log(element.datePurchase);
+                //console.log(element.datePurchase);
             });
 
             // create a document 
@@ -742,7 +761,8 @@ controller.getPDFTickets = (req, res) => {
                 bufferPages: true,
             });
 
-            const filename = `ReportTickets_${Date()}.pdf`;
+            const today = new Date();
+            const filename = `ReportTickets_${today.getDate()}_${today.getMonth()}.pdf`;
             // write the head 
             const stream = res.writeHead(200, {
                 'content-Type': 'application/pdf',
@@ -759,7 +779,7 @@ controller.getPDFTickets = (req, res) => {
             }, () => {
                 doc // set the text of head 
                     .fontSize(18) // set the font size
-                    .text('Report Tickets  _BAB_', {
+                    .text(`Reporte Boletos  Fecha: ${today.getDate()}/${today.getMonth()}`, {
                         width: 420,
                         align: 'center'
                     });
@@ -802,7 +822,6 @@ controller.addRoute = (req, res) => {
     //console.log(req.body);
     const data = req.body;
     console.log(data);
-    return;
     req.getConnection((err, conn) => {
         conn.query('INSERT INTO travelRoutes SET ?', [data], (err, rows) => {
             if (err) {
