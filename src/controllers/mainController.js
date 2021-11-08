@@ -97,33 +97,53 @@ controller.list = (req, res) => {
 };
 
 controller.admin = (request, response) => {
-    const statusAdmin = request.query.status;
-    request.getConnection(async (error, connection) => {
-        if (error) throw error; // error with the connection 
-        const query = util.promisify(connection.query).bind(connection);
-        try {
-            const data = await query('SELECT DISTINCT priceTravel FROM travelRoutes');
-            console.log(data);
-            if (statusAdmin) { // new regiter 
+    if (request.query.access) {
+        const statusAdmin = request.query.status;
+        request.getConnection(async (error, connection) => {
+            if (error) throw error; // error with the connection 
+            const query = util.promisify(connection.query).bind(connection);
+            try {
+                const data = await query('SELECT DISTINCT priceTravel FROM travelRoutes');
+                console.log(data);
+                if (statusAdmin) { // new regiter 
+                    response.render('admin', {
+                        dataRows: data,
+                        alert: true,
+                        alertTitle: "REGISTRO EXITOSO!!",
+                        alertMessage: "se ha agregado una nueva ruta",
+                        alertIcon: "info",
+                        timer: 3000,
+                        showConfirmButton: false,
+                        ruta: 'admin'
+                    })
+                }
                 response.render('admin', {
-                    dataRows : data,
-                    alert: true,
-                    alertTitle: "REGISTRO EXITOSO!!",
-                    alertMessage: "se ha agregado una nueva ruta",
-                    alertIcon: "info",
-                    timer: 3000,
-                    showConfirmButton: false,
-                    ruta: 'admin'
+                    dataRows: data
+                });
+            } catch (error) {
+                res.json(error);
+                //return;
+            }
+        });
+    } else {
+        response.send(`
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
+        <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            window.onload=function() {
+                Swal.fire({
+                    title: "ACCESO DENEGADO",
+                    text: "Solo usuarios ADMINISTRADORES",
+                    icon: "error",
+                    showConfirmButton: "true",
+                    timer: 3000
+                }).then(() => {
+                    window.location = '/'
                 })
             }
-            response.render('admin', {
-                dataRows: data
-            });
-        } catch (error) {
-            res.json(error);
-            //return;
-        }
-    });
+		</script>
+        `);
+    }
 }
 
 controller.dataRoutes = async (request, response) => { // get data of table travelRoutes and send JSON

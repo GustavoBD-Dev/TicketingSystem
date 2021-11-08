@@ -17,7 +17,11 @@ const { request } = require('http');
 /* app.all('', (request, response, next) => {
     // show in the console 
     console.log('por aqui paso');
+        // res.send('finish'); // renderize the page, no continue to route 
     // res.send('finish'); // renderize the page, no continue to route 
+        // res.send('finish'); // renderize the page, no continue to route 
+    // res.send('finish'); // renderize the page, no continue to route 
+        // res.send('finish'); // renderize the page, no continue to route 
     // continue with the route that next, this route defined in '', for example '/user'
     // this route can defined '/user/:id', this function is executed before going to that route
     next();
