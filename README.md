@@ -25,6 +25,10 @@
 `$ npm pdfkit pdfkit-construc`
 - Dependencia de desarrollo
 `$ npm i nodemon`
+- Variables de entorno
+`$ cross-env`
+- Pagos con tarjeta 
+`$ stripe`
 
 #### Iniciar aplicación
 `npm run dev`
