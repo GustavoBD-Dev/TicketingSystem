@@ -4,6 +4,7 @@
 - Consulta de detalles de ruta: origen, destino, hora y precio.
 - Para la compra de boleto es necesario una cuenta de usuario
 - Cancelacion de boleto e impresion en formato PDF
+- Metodo de pago con tarjeta
 
 ### Desarrollo
 #### Aplicacion Web con Node.js y MySQL
