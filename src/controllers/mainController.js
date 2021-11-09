@@ -1,13 +1,13 @@
-const { render } = require("ejs");
+//const { render } = require("ejs");
 var bcryptjs = require('bcryptjs');
-const { route, connect } = require("../routes/main");
+//const { route, connect } = require("../routes/main");
 const util = require('util');
 //const PDFDocument = require('pdfkit');
 const PDFDocument = require('pdfkit-construct');
-const connection = require("express-myconnection");
-const { error } = require("console");
-const { request } = require("http");
-const { response } = require("express");
+//const connection = require("express-myconnection");
+//const { error } = require("console");
+//const { request } = require("http");
+//const { response } = require("express");
 //const fs = require('fs'); // module de nodejs
 require('dotenv').config();
 const stripe = require('stripe')(process.env.STRIPE_KEY);
@@ -33,18 +33,19 @@ controller.stripe = async (req, res) => {
         const productID500 = 'price_1Jt4NfIs3eGPqVAxCQuv0oQb'; // 500
         const productID250 = 'price_1Jt4NfIs3eGPqVAx4yhTKuEO'; // 250
         const productID150 = 'price_1Jt4NeIs3eGPqVAxduXlcVhy'; // 150
-        const productID = '';
+        let productID = '';
 
         if (Number(price) == 500) {
-            productID = productID500;
+            productID += productID500;
         } else if (Number(price) == 250) {
-            productID = productID250;
+            productID += productID250;
         } else if (Number(price) == 150) {
-            productID = productID150;
+            productID += productID150;
         } else {
             res.json(productID);
         }
 
+        
         // 2 - generate session 
         const session = await stripe.checkout.sessions.create({
             // line products
