@@ -302,6 +302,36 @@ controller.pay = async (req, res) => {
     const ended = req.params.destinyPlace;
     const dateSelect = req.body.dateSelect;
     const hourSelect = req.body.hourSelect;
+
+    const dateUser = new Date(dateSelect);
+    const dateCurrent = new Date();
+    console.log('Fecha de usuario: ',dateUser.getTime());
+    console.log ('Fecha actual: ', new Date().getTime());
+    // validate date travel that select the user and the date current 
+    if ( dateUser.getTime() < dateCurrent.getTime()){
+        // no available
+        console.log('FECHA ATRASADA');
+        // redirect 
+        res.send(`
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
+        <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            window.onload=function() {
+                Swal.fire({
+                    title: "FECHA NO VALIDA",
+                    text: "Seleccione una fecha a partir de ${dateCurrent}",
+                    icon: "error",
+                    showConfirmButton: "true",
+                    timer: 3000
+                }).then(() => {
+                    window.location = '/dataTimeTravel/${start}-${ended}'
+                })
+            }
+		</script>
+        `);
+        return;
+    }
+
     console.log('HACER COMPRA CON ESTE DATO', start, ended);;
     // get price of route
     req.getConnection((error, connection) => {

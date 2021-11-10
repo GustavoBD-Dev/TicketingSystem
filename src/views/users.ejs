@@ -29,11 +29,11 @@
 					</div>
 					<div id="navbar-collapse-02" class="collapse navbar-collapse">
 						<ul class="nav navbar-nav navbar-right">
-							<li class="propClone"><a href="index.html">Inicio</a></li>
-							<li class="propClone"><a href="shop.html">Rutas</a></li>
-							<li class="propClone"><a href="product.html">Camiones</a></li>
-							<li class="propClone"><a href="checkout.html">Pago</a></li>
-							<li class="propClone"><a href="contact.html">Registro</a></li>
+							<li class="propClone"><a href="/">Inicio</a></li>
+							<li class="propClone"><a href="/origenes">Rutas</a></li>
+							<li class="propClone"><a href="/camiones">Camiones</a></li>
+							<!-- <li class="propClone"><a href="checkout.html">Pago</a></li> -->
+							<li class="propClone"><a href="/registro">Registro</a></li>
 						</ul>
 					</div>
 				</div>
@@ -81,7 +81,7 @@
 							<label for="">Selecciona la hora de salida</label>
 							<select class="form-group" name="hourSelect" required>
 								<% for (var i=0; i < hours.length; i++) {%>
-									<% if (i < 12) {%>
+									<% if (hours[i] < 12) {%>
 										<option value="<%= hours[i] %>:00:00"><%= hours[i] %>:00:00 a.m</option>
 									<% } else {%>
 										<option value="<%= hours[i] %>:00:00"><%= hours[i] %>:00:00 p.m</option>
@@ -139,5 +139,19 @@
 	<script src="/js/jquery-.js"></script>
 	<script src="/js/bootstrap.min.js"></script>
 	<script src="/js/anim.js"></script>
+	<script src="//cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+	<% if (typeof alert != "undefined") {%>
+		<script>
+			Swal.fire({
+				title: "<%= alertTitle %>",
+				text: "<%= alertMessage %>",
+				icon: "<%= alertIcon %>",
+				showConfirmButton: "<%= showConfirmButton %>",
+				timer: "<%= timer %>"
+			}).then(() => {
+				window.location = '/<%= ruta %>'
+			})
+		</script>
+	<% } %>
 
 </html>
