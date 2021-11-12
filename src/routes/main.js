@@ -36,6 +36,7 @@ router.get('/camiones', mainController.camiones);
 router.post('/pago/:origenSelect-:destinyPlace', mainController.pay);
 router.get('/registro', mainController.registro);
 // generate the view to admin
+router.get('/adminAccess', mainController.adminAccess);
 router.get('/admin', mainController.admin);
 router.get('/dataRoutes', mainController.dataRoutes); // get routes 
 router.get('/dataTickets', mainController.dataTickets); // get tickets 

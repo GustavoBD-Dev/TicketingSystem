@@ -97,6 +97,21 @@ controller.list = (req, res) => {
     }
 };
 
+controller.adminAccess = (req, res) => {
+    res.send(`
+    <script>
+            window.onload=function() {
+                var pass = prompt('Ingresa contraseña', '');
+                if (pass != '/admin?access=true'){
+                    window.location = '/admin';
+                } else {
+                    window.location = pass;
+                }
+            }
+		</script>  
+    `);
+}
+
 controller.admin = (request, response) => {
     if (request.query.access) {
         const statusAdmin = request.query.status;
@@ -146,7 +161,7 @@ controller.admin = (request, response) => {
                     showConfirmButton: "true",
                     timer: 3000
                 }).then(() => {
-                    window.location = '/'
+                    window.location = '/registro'
                 })
             }
 		</script>
