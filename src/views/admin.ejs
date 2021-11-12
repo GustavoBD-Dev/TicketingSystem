@@ -199,7 +199,7 @@
 
         <div id="downloadReport" class="tabcontent">
             <div class="col-md-5">
-                <div class="row">
+                <!-- <div class="row">
                     <form action="/getPDFRoutes">
                         <div>
                             <button onclick="descarga()" type="submit" class="btn btn-light">
@@ -214,6 +214,66 @@
                         <div>
                             <button onclick="descarga()" type="submit" class="btn btn-light">
                                 <strong>DESCARGAR REPORTE BOLETOS</strong></button>
+                        </div>
+                    </form>
+                </div> -->
+                <div class="row-md-15">
+                    <div class="col-md-12">
+                        <form action="/getPDFTickets?type=xRoute" method="post">
+                            <div class="row">
+                                <h3>
+                                    <small class="text-muted">Reporte por Ruta</small>
+                                </h3>    
+                            </div>
+                            <br>
+                            <!-- <label for="select">Seleccione ruta</label> -->
+                            <div class="row">
+                                <select class="btn btn-primary dropdown-toggle" name="routeSelect" required>
+                                    <% for (var i=0; i < dataRoutesR.length; i++) {%>
+                                        <option value="<%= dataRoutesR[i].idTravelRoute %>"><%= dataRoutesR[i].idTravelRoute %> : <%= dataRoutesR[i].startingPlace%> -  <%= dataRoutesR[i].destinyPlace%></option>
+                                    <% } %>
+                                </select>
+                            </div>
+                            <br>
+                            <div class="row">
+                                <button onclick="descarga()" type="submit" class="btn btn-light">
+                                    <strong>DESCARGAR REPORTE PDF</strong></button> 
+                            </div>                
+                        </form>
+                    </div>
+                </div>
+                <br>
+                <br>
+                <div class="col-md-12">
+                    <form action="/getPDFTickets?type=xDate" method="post">
+                        <div class="row">
+                            <h3>
+                                <small class="text-muted">Reporte por Fecha</small>
+                            </h3>    
+                        </div>
+                        <br>
+                        <!-- <label for="select">Seleccione ruta</label> -->
+                        <div class="row">
+                            <select class="btn btn-primary dropdown-toggle" name="hSelect" required>
+                                <% for (var i=0; i < dateTicketsPurchased.length; i++) {%>
+                                    <option value="<%= dateTicketsPurchased[i].datePurchase %>"><%= dateTicketsPurchased[i].datePurchase %></option>
+                                <% } %>
+                            </select>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <button onclick="descarga()" type="submit" class="btn btn-light">
+                                <strong>DESCARGAR REPORTE PDF</strong></button> 
+                        </div>                
+                    </form>
+                </div>
+                <br>
+                <br>
+                <div class="row">
+                    <form action="/getPDFRoutes">
+                        <div>
+                            <button onclick="descarga()" type="submit" class="btn btn-light">
+                                <strong>DESCARGAR REPORTE RUTAS REGISTRADAS</strong></button>
                         </div>
                     </form>
                 </div>

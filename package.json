@@ -22,6 +22,7 @@
     "nodemon": "^2.0.14",
     "pdfkit": "^0.13.0",
     "pdfkit-construct": "^1.2.3",
+    "qrcode": "^1.4.4",
     "stripe": "^8.186.1"
   }
 }

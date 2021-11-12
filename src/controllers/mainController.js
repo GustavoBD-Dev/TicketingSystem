@@ -4,6 +4,7 @@ var bcryptjs = require('bcryptjs');
 const util = require('util');
 //const PDFDocument = require('pdfkit');
 const PDFDocument = require('pdfkit-construct');
+const qrcode = require('qrcode');
 //const connection = require("express-myconnection");
 //const { error } = require("console");
 //const { request } = require("http");
@@ -105,10 +106,15 @@ controller.admin = (request, response) => {
             const query = util.promisify(connection.query).bind(connection);
             try {
                 const data = await query('SELECT DISTINCT priceTravel FROM travelRoutes');
+                const routes = await query('SELECT * FROM travelRoutes WHERE idTravelRoute IN (SELECT DISTINCT idTravelRoute FROM purchasedTickets);');
+                const dateTicketsPurchased = await query(`select distinct datePurchase from purchasedTickets;`);
                 console.log(data);
+                console.log(routes);
                 if (statusAdmin) { // new regiter 
                     response.render('admin', {
                         dataRows: data,
+                        dataRoutesR: routes,
+                        dateTicketsPurchased: dateTicketsPurchased,
                         alert: true,
                         alertTitle: "REGISTRO EXITOSO!!",
                         alertMessage: "se ha agregado una nueva ruta",
@@ -119,7 +125,9 @@ controller.admin = (request, response) => {
                     })
                 }
                 response.render('admin', {
-                    dataRows: data
+                    dataRows: data, 
+                    dataRoutesR : routes,
+                    dateTicketsPurchased: dateTicketsPurchased
                 });
             } catch (error) {
                 res.json(error);
@@ -851,13 +859,28 @@ controller.getPDFRoutes = (req, res) => {
 }
 
 controller.getPDFTickets = (req, res) => {
+
+    var querySelected = '';
+    if (req.query.type === 'xDate'){
+        console.log('USUARIO REQUIERE REPORTE POR FECHA');
+        var dateS = new Date(req.body.hSelect);
+        querySelected += `SELECT * FROM purchasedTickets WHERE datePurchase = '${dateS.getFullYear()}-${dateS.getMonth()+1}-${dateS.getDate()}'`;
+        console.log(
+            querySelected
+        );
+    } else if (req.query.type === 'xRoute'){
+        console.log('USUARIO REQUIERE REPORTE POR RUTA');
+        querySelected += `SELECT * FROM purchasedTickets WHERE idTravelRoute = ${req.body.routeSelect}`;
+    } else {
+        console.log(req.query);
+    }
+    
     req.getConnection(async (error, conn) => {
         if (error) throw error; // error with the connection 
         const query = util.promisify(conn.query).bind(conn);
         try {
             //res.send(JSON.stringify(await query('SELECT * FROM travelRoutes')));
-            const data = await query('SELECT * FROM purchasedTickets');
-
+            const data = await query(querySelected);
             console.log(data[0].datePurchase.getFullYear());
 
             data.forEach(element => {
@@ -947,6 +970,13 @@ controller.addRoute = (req, res) => {
     });
 }
 
+const getQR = async () => {
+    const urlBAB = "https://github.com/GustavoBD-Dev/TicketingSystem";
+    const code = qrcode.toString(urlBAB, (err, url) => {
+        if (err) throw err;
+    });
+    return code;
+}
 
 module.exports = controller;
 
