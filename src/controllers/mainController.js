@@ -4,7 +4,6 @@ var bcryptjs = require('bcryptjs');
 const util = require('util');
 //const PDFDocument = require('pdfkit');
 const PDFDocument = require('pdfkit-construct');
-const qrcode = require('qrcode');
 //const connection = require("express-myconnection");
 //const { error } = require("console");
 //const { request } = require("http");
@@ -513,7 +512,7 @@ controller.getTicket = async (req, res) => { // ticket generation, pass folio pu
                 doc // set the text of head 
                     .fontSize(20) // set the font size
                     .text('Boleto BAB', {
-                        width: 200,
+                        width: 400,
                         align: 'center'
                     });
                 // add more content 
@@ -529,6 +528,7 @@ controller.getTicket = async (req, res) => { // ticket generation, pass folio pu
             doc.text(`${dataUser[0].fullNameUs}`, 30, 30);
             doc.text(`${dataUser[0].emailUser}`, 30, 45);
             doc.text(`Fecha: ${fecha} ${hora}`, 30, 60)
+            doc.text(`Folio: ${folio}`, 30, 75);
 
             //create table 
             const infoBoletos = [
@@ -970,13 +970,6 @@ controller.addRoute = (req, res) => {
     });
 }
 
-const getQR = async () => {
-    const urlBAB = "https://github.com/GustavoBD-Dev/TicketingSystem";
-    const code = qrcode.toString(urlBAB, (err, url) => {
-        if (err) throw err;
-    });
-    return code;
-}
 
 module.exports = controller;
 
