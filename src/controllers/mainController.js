@@ -683,6 +683,59 @@ controller.userRegister = async (req, res) => { // register new user
     });
 };
 
+
+controller.accountConfig = (req, res) => {
+    req.getConnection( (err, conn) => {
+        if (err) throw err;
+        conn.query(`SELECT * FROM users WHERE userName = '${req.session.name}'`, (err, row) => {
+            if (err) console.json(err);
+            res.render('users_edit', {
+                data : row,
+                name : req.session.name,
+                login: true
+            });
+        })
+    });
+}
+
+controller.updateAccount = (req, res) => {
+    req.getConnection( async (err, conn) => {
+        if (err) throw err;
+        const query = util.promisify(conn.query).bind(conn);
+        try {
+            const users = await query(`SELECT * FROM users WHERE userName = '${req.body.username}'`);
+            if (users.length == 0) { // not exist users with username 
+                // update the database 
+                await query(`UPDATE users SET userName = '${req.body.username}' WHERE userName = '${req.session.name}'`);
+                // update session name
+                const dataUpdate = await query(`SELECT * FROM users WHERE userName = '${req.body.username}'`);
+                console.log(req.session.name);
+                req.session.name = dataUpdate[0].userName;
+                console.log(req.session.name);
+                res.send(`
+                    <script>
+                        window.onload=function() {
+                            alert('Actualizacion correcta', '');
+                            window.location = '/account'
+                        }
+                    </script>  
+                `); 
+            } else {
+                res.send(`
+                        <script>
+                            window.onload=function() {
+                                alert('ELIGE OTRO NOMBRE DE USUARIO', '');
+                                window.location = '/accountConfig'
+                            }
+                        </script>  
+                    `);
+            }
+        } catch (error) {
+            res.json(error);
+        }
+    })
+}
+
 controller.auth = async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;

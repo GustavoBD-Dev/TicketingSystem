@@ -22,6 +22,8 @@ router.get('/update/:id', mainController.edit); // receive in params the id
 router.post('/update/:id', mainController.update); // receive in params the id
 router.post('/userRegister', mainController.userRegister);
 router.post('/auth', mainController.auth);
+router.get('/accountConfig', mainController.accountConfig);
+router.post('/updateAccount', mainController.updateAccount);
 // receive in params the origen select and destiny place
 router.get('/purchase', mainController.purchase); 
 // receive in params the folio to print ticket
