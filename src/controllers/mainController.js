@@ -61,8 +61,8 @@ controller.stripe = async (req, res) => {
             ],
             mode: 'payment',
             //success_url: `${YOUR_DOMAIN}/success.html`,
-            success_url: `http://localhost:3000/purchase?start=${start}&end=${end}&date=${date}&hour=${hour}&price=${price}`,
-            cancel_url: `http://localhost:3000/origenes`,
+            success_url: `${process.env.DOMAIN}/purchase?start=${start}&end=${end}&date=${date}&hour=${hour}&price=${price}`,
+            cancel_url: `${process.env.DOMAIN}/origenes`,
         });
         //console.log(session.url);
         res.redirect(303, session.url);
