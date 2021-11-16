@@ -16,6 +16,7 @@ const controller = {};
 
 controller.stripe = async (req, res) => {
     if (req.session.loggedIn) {
+
         // get query string
         const {
             start = '',
@@ -25,47 +26,71 @@ controller.stripe = async (req, res) => {
             price = ''
         } = req.query;
 
-        console.log('start: ', start, ' end: ', end, ' date: ', date, ' hour: ', hour, ' price: ', price)
-        console.log('************ PROCESO STRIPE *************');
-        console.log('variable price -> ', typeof price);
+        // checkout credit in account 
+        req.getConnection(async (err, conn) => {
+            if (err) throw err;
+            const query = util.promisify(conn.query).bind(conn);
+            try {
+                // get credit 
+                const creditAccount = await query(`SELECT credit FROM users WHERE userName = '${req.session.name}'`);
+                // parse to int 
+                const credit = Number(creditAccount[0].credit);
+                // credit in account is available buy with credit 
+                const change = credit - Number(price);
+                if (change > 0){
+                    await query(`UPDATE users SET credit = '${change}' WHERE userName = '${req.session.name}'`);
+                    res.redirect(303, `${process.env.DOMAIN}/purchase?start=${start}&end=${end}&date=${date}&hour=${hour}&price=${price}`);
+                } else { // credit not available 
 
-        // 1 - set ID of prices 
-        const productID500 = 'price_1Jt4NfIs3eGPqVAxCQuv0oQb'; // 500
-        const productID250 = 'price_1Jt4NfIs3eGPqVAx4yhTKuEO'; // 250
-        const productID150 = 'price_1Jt4NeIs3eGPqVAxduXlcVhy'; // 150
-        let productID = '';
+                    console.log('start: ', start, ' end: ', end, ' date: ', date, ' hour: ', hour, ' price: ', price)
+                    console.log('************ PROCESO STRIPE *************');
+                    console.log('variable price -> ', typeof price);
 
-        if (Number(price) == 500) {
-            productID += productID500;
-        } else if (Number(price) == 250) {
-            productID += productID250;
-        } else if (Number(price) == 150) {
-            productID += productID150;
-        } else {
-            res.json(productID);
-        }
+                    // 1 - set ID of prices 
+                    const productID500 = 'price_1Jt4NfIs3eGPqVAxCQuv0oQb'; // 500
+                    const productID250 = 'price_1Jt4NfIs3eGPqVAx4yhTKuEO'; // 250
+                    const productID150 = 'price_1Jt4NeIs3eGPqVAxduXlcVhy'; // 150
+                    let productID = '';
+            
+                    if (Number(price) == 500) {
+                        productID += productID500;
+                    } else if (Number(price) == 250) {
+                        productID += productID250;
+                    } else if (Number(price) == 150) {
+                        productID += productID150;
+                    } else {
+                        res.json(productID);
+                    }
+            
+                    
+                    // 2 - generate session 
+                    const session = await stripe.checkout.sessions.create({
+                        // line products
+                        line_items: [
+                            { // products -> tickets
+                                price: productID,
+                                quantity: 1
+                            }
+                        ],
+                        payment_method_types: [ // method pay
+                            "card",
+                            "oxxo"
+                        ],
+                        mode: 'payment',
+                        //success_url: `${YOUR_DOMAIN}/success.html`,
+                        success_url: `${process.env.DOMAIN}/purchase?start=${start}&end=${end}&date=${date}&hour=${hour}&price=${price}`,
+                        cancel_url: `${process.env.DOMAIN}/origenes`,
+                    });
+                    //console.log(session.url);
+                    res.redirect(303, session.url);
 
-        
-        // 2 - generate session 
-        const session = await stripe.checkout.sessions.create({
-            // line products
-            line_items: [
-                { // products -> tickets
-                    price: productID,
-                    quantity: 1
                 }
-            ],
-            payment_method_types: [ // method pay
-                "card",
-                "oxxo"
-            ],
-            mode: 'payment',
-            //success_url: `${YOUR_DOMAIN}/success.html`,
-            success_url: `${process.env.DOMAIN}/purchase?start=${start}&end=${end}&date=${date}&hour=${hour}&price=${price}`,
-            cancel_url: `${process.env.DOMAIN}/origenes`,
-        });
-        //console.log(session.url);
-        res.redirect(303, session.url);
+
+            } catch (error) {
+                res.json(error);
+            }
+        })        
+
     } else { // session inactive  
         res.render('index', {
             login: true,
