@@ -644,19 +644,45 @@ controller.delete = (req, res) => { // delete ticket with folio
                 `SELECT * FROM purchasedTickets JOIN users ON users.idUser = purchasedTickets.idUser 
                 JOIN travelRoutes ON travelRoutes.idTravelRoute = purchasedTickets.idTravelRoute 
                 WHERE users.idUser = (SELECT idUser FROM users WHERE userName = '${req.session.name}')`);
-            // show the message to delete and refresh the page whit the tickets
-            res.render('account', {
-                login: true,
-                name: req.session.name,
-                data: tickets,
-                alert: true,
-                alertTitle: "HAS LIMINADO UN BOLETO!!",
-                alertMessage: `${ticketDelete.startingPlace}-${ticketDelete.destinyPlace} \n ${ticketDelete.dateTravel}/${ticketDelete.hourTravel}`,
-                alertIcon: "error",
-                timer: 6000,
-                showConfirmButton: false,
-                ruta: ''
-            });
+
+            if (tickets.length) {
+                // exists tickets in account  
+                console.log('EL USUARIO YA TIENE TICKETS COMPRADOS');
+                console.log(tickets);
+                res.render('account', { // send tickets 
+                    login: true,
+                    name: req.session.name,
+                    data: tickets,
+                    alert: true,
+                    alertTitle: "HAS ELIMINADO UN BOLETO!!",
+                    alertMessage: `${ticketDelete.startingPlace}-${ticketDelete.destinyPlace} \n ${ticketDelete.dateTravel}/${ticketDelete.hourTravel}`,
+                    alertIcon: "error",
+                    timer: 6000,
+                    showConfirmButton: false,
+                    ruta: ''
+                });
+            } else { // no tickets in account  
+                // get the user data 
+                conn.query('select * from users where userName = ?',
+                    [req.session.name], async (err, userData) => {
+                        if (err) {
+                            res.json(err);
+                        }
+                        console.log(userData);
+                        res.render('account', { // send user data to account 
+                            login: true,
+                            name: req.session.name,
+                            data: userData,
+                            alert: true,
+                            alertTitle: "HAS ELIMINADO UN BOLETO!!",
+                            alertMessage: `${ticketDelete.startingPlace}-${ticketDelete.destinyPlace} \n ${ticketDelete.dateTravel}/${ticketDelete.hourTravel}`,
+                            alertIcon: "error",
+                            timer: 6000,
+                            showConfirmButton: false,
+                            ruta: ''
+                        })
+                    });
+            }
         } catch (error) {
             res.json(error); // handle the error
         }
