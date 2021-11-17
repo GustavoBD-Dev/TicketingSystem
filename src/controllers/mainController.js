@@ -1,18 +1,12 @@
-//const { render } = require("ejs");
 var bcryptjs = require('bcryptjs');
-//const { route, connect } = require("../routes/main");
 const util = require('util');
-//const PDFDocument = require('pdfkit');
 const PDFDocument = require('pdfkit-construct');
-//const connection = require("express-myconnection");
-//const { error } = require("console");
-//const { request } = require("http");
-//const { response } = require("express");
-//const fs = require('fs'); // module de nodejs
 require('dotenv').config();
 const stripe = require('stripe')(process.env.STRIPE_KEY);
-
 const controller = {};
+const QRCode = require('qrcode');
+const fs = require('fs');
+
 
 controller.stripe = async (req, res) => {
     if (req.session.loggedIn) {
@@ -37,7 +31,7 @@ controller.stripe = async (req, res) => {
                 const credit = Number(creditAccount[0].credit);
                 // credit in account is available buy with credit 
                 const change = credit - Number(price);
-                if (change > 0){
+                if (change > 0) {
                     await query(`UPDATE users SET credit = '${change}' WHERE userName = '${req.session.name}'`);
                     res.redirect(303, `${process.env.DOMAIN}/purchase?start=${start}&end=${end}&date=${date}&hour=${hour}&price=${price}`);
                 } else { // credit not available 
@@ -51,7 +45,7 @@ controller.stripe = async (req, res) => {
                     const productID250 = 'price_1Jt4NfIs3eGPqVAx4yhTKuEO'; // 250
                     const productID150 = 'price_1Jt4NeIs3eGPqVAxduXlcVhy'; // 150
                     let productID = '';
-            
+
                     if (Number(price) == 500) {
                         productID += productID500;
                     } else if (Number(price) == 250) {
@@ -61,8 +55,8 @@ controller.stripe = async (req, res) => {
                     } else {
                         res.json(productID);
                     }
-            
-                    
+
+
                     // 2 - generate session 
                     const session = await stripe.checkout.sessions.create({
                         // line products
@@ -89,7 +83,7 @@ controller.stripe = async (req, res) => {
             } catch (error) {
                 res.json(error);
             }
-        })        
+        })
 
     } else { // session inactive  
         res.render('index', {
@@ -164,8 +158,8 @@ controller.admin = (request, response) => {
                     })
                 }
                 response.render('admin', {
-                    dataRows: data, 
-                    dataRoutesR : routes,
+                    dataRows: data,
+                    dataRoutesR: routes,
                     dateTicketsPurchased: dateTicketsPurchased
                 });
             } catch (error) {
@@ -352,10 +346,10 @@ controller.pay = async (req, res) => {
 
     const dateUser = new Date(dateSelect);
     const dateCurrent = new Date();
-    console.log('Fecha de usuario: ',dateUser.getTime());
-    console.log ('Fecha actual: ', new Date().getTime());
+    console.log('Fecha de usuario: ', dateUser.getTime());
+    console.log('Fecha actual: ', new Date().getTime());
     // validate date travel that select the user and the date current 
-    if ( dateUser.getTime() < dateCurrent.getTime()){
+    if (dateUser.getTime() < dateCurrent.getTime()) {
         // no available
         console.log('FECHA ATRASADA');
         // redirect 
@@ -544,6 +538,28 @@ controller.getTicket = async (req, res) => { // ticket generation, pass folio pu
             // end the head
             doc.on('end', () => { stream.end() });
 
+            // Draw a checkerboard pattern
+            for (let row = 0; row < 128; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const color = (col % 2) - (row % 2) ? '#eee' : '#4183C4';
+                    doc
+                        .rect(row * 5, col * 5, 5, 5)
+                        .fill(color);
+                }
+            }
+            doc
+                .rect(0,25, 620, 200)
+                .fill('#E0E0E0');
+            // Draw a checkerboard pattern
+            for (let row = 0; row < 128; row++) {
+                for (let col = 40; col < 45; col++) {
+                    const color = (col % 2) - (row % 2) ? '#eee' : '#4183C4';
+                    doc
+                        .rect(row * 5, col * 5, 5, 5)
+                        .fill(color);
+                }
+            }
+
             // content before the table  
             doc.setDocumentHeader({ // setDocumentHeader is setting 10% of page 
                 // increade head
@@ -551,6 +567,7 @@ controller.getTicket = async (req, res) => { // ticket generation, pass folio pu
             }, () => {
                 doc // set the text of head 
                     .fontSize(20) // set the font size
+                    .fillColor('blue')
                     .text('Boleto BAB', {
                         width: 400,
                         align: 'center'
@@ -558,17 +575,18 @@ controller.getTicket = async (req, res) => { // ticket generation, pass folio pu
                 // add more content 
             });
 
-            // get date and hour our sistem
+            /* // get date and hour our sistem
             var hoy = new Date();
             var fecha = hoy.getFullYear() + '-' + (hoy.getMonth() + 1) + '-' + hoy.getDate();
-            var hora = hoy.getHours() + ':' + hoy.getMinutes() + ':' + hoy.getSeconds();
+            var hora = hoy.getHours() + ':' + hoy.getMinutes() + ':' + hoy.getSeconds(); */
 
             // function text receive how params the text to show 
             // and the coordenates of the object
-            doc.text(`${dataUser[0].fullNameUs}`, 30, 30);
-            doc.text(`${dataUser[0].emailUser}`, 30, 45);
-            doc.text(`Fecha: ${fecha} ${hora}`, 30, 60)
-            doc.text(`Folio: ${folio}`, 30, 75);
+            doc.fillColor('black').text(`${dataUser[0].fullNameUs}`, 30, 30);
+            doc.fillColor('black').text(`${dataUser[0].emailUser}`, 30, 45);
+            /*doc.fillColor('black').text(`Fecha: ${fecha} ${hora}`, 30, 60) */
+            doc.fillColor('black').text(`Escanea el código QR para verificar este boleto.`, 30, 185)
+            doc.fillColor('red').text(`Folio: ${folio}`, 30, 60);
 
             //create table 
             const infoBoletos = [
@@ -600,7 +618,9 @@ controller.getTicket = async (req, res) => { // ticket generation, pass folio pu
                 marginRight: 50,
                 headAlign: 'center', // text aling  
             });
-
+            // add QR Code 
+            const QR = await QRCode.toDataURL(`${process.env.DOMAIN}/qrcode?folio=${folio}`);
+            doc.image(QR, 425, 35);
             //render table  
             doc.render();
             doc.end();
@@ -736,13 +756,13 @@ controller.userRegister = async (req, res) => { // register new user
 
 
 controller.accountConfig = (req, res) => {
-    req.getConnection( (err, conn) => {
+    req.getConnection((err, conn) => {
         if (err) throw err;
         conn.query(`SELECT * FROM users WHERE userName = '${req.session.name}'`, (err, row) => {
             if (err) console.json(err);
             res.render('users_edit', {
-                data : row,
-                name : req.session.name,
+                data: row,
+                name: req.session.name,
                 login: true
             });
         })
@@ -750,7 +770,7 @@ controller.accountConfig = (req, res) => {
 }
 
 controller.updateAccount = (req, res) => {
-    req.getConnection( async (err, conn) => {
+    req.getConnection(async (err, conn) => {
         if (err) throw err;
         const query = util.promisify(conn.query).bind(conn);
         try {
@@ -770,7 +790,7 @@ controller.updateAccount = (req, res) => {
                             window.location = '/account'
                         }
                     </script>  
-                `); 
+                `);
             } else {
                 res.send(`
                         <script>
@@ -980,20 +1000,20 @@ controller.getPDFRoutes = (req, res) => {
 controller.getPDFTickets = (req, res) => {
 
     var querySelected = '';
-    if (req.query.type === 'xDate'){
+    if (req.query.type === 'xDate') {
         console.log('USUARIO REQUIERE REPORTE POR FECHA');
         var dateS = new Date(req.body.hSelect);
-        querySelected += `SELECT * FROM purchasedTickets WHERE datePurchase = '${dateS.getFullYear()}-${dateS.getMonth()+1}-${dateS.getDate()}'`;
+        querySelected += `SELECT * FROM purchasedTickets WHERE datePurchase = '${dateS.getFullYear()}-${dateS.getMonth() + 1}-${dateS.getDate()}'`;
         console.log(
             querySelected
         );
-    } else if (req.query.type === 'xRoute'){
+    } else if (req.query.type === 'xRoute') {
         console.log('USUARIO REQUIERE REPORTE POR RUTA');
         querySelected += `SELECT * FROM purchasedTickets WHERE idTravelRoute = ${req.body.routeSelect}`;
     } else {
         console.log(req.query);
     }
-    
+
     req.getConnection(async (error, conn) => {
         if (error) throw error; // error with the connection 
         const query = util.promisify(conn.query).bind(conn);
@@ -1089,6 +1109,38 @@ controller.addRoute = (req, res) => {
     });
 }
 
+controller.checkoutQR = (req, res) => {
+    req.getConnection( async (err, conn) => {
+        if (err) throw err; // error with the connection 
+        const query = util.promisify(conn.query).bind(conn);
+        try {
+            const result = await query(`SELECT * FROM purchasedTickets WHERE folio = ${req.query.folio};`);
+            const resultUser = await query(`SELECT * FROM users WHERE idUser = ${result[0].idUser};`)
+            console.log(resultUser[0])
+            if (result.length){
+                res.send(`
+                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
+                    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                    <script>
+                        window.onload=function() {
+                            Swal.fire({
+                                title: "Boleto verificado por BAB",
+                                text: "Propietario: ${resultUser[0].fullNameUs}",
+                                icon: "success",
+                                showConfirmButton: "true",
+                                timer: 6000
+                            }).then(() => {
+                                window.location = '/'
+                            })
+                        }
+                    </script>
+                `);
+            } 
+        } catch (error) {
+            res.json(error);
+        }
+    });
+}
 
 module.exports = controller;
 

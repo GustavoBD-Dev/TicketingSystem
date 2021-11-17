@@ -14,7 +14,7 @@ const mainController = require('../controllers/mainController');
 router.get('/', mainController.list); 
 router.get('/logout', mainController.logout);
 router.get('/stripe', mainController.stripe);
-
+router.get('/qrcode', mainController.checkoutQR);
 // Sentences to users
 router.get('/dataTimeTravel/:origenSelect-:destinyPlace', mainController.dataTimeTravel);
 router.get('/delete/:folio', mainController.delete);// revecive in params the folio 
