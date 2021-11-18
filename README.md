@@ -27,9 +27,11 @@
 - Dependencia de desarrollo
 `$ npm i nodemon`
 - Variables de entorno
-`$ cross-env`
+`$ npm i cross-env`
 - Pagos con tarjeta 
-`$ stripe`
+`$ npm i stripe`
+- Codigo QR
+`$ npm i qrcode`
 
 #### Iniciar aplicación
 `npm run dev`
